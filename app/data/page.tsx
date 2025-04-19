@@ -35,16 +35,34 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label?: string;
+    data: number[];
+    borderColor?: string;
+    backgroundColor?: string | string[];
+    tension?: number;
+  }[];
+}
+
+interface Task {
+  created_at: string;
+  type: string;
+  completed: boolean;
+  category: string;
+}
+
 export default function DataPage() {
-  const [tasksOverTime, setTasksOverTime] = useState<any>({
+  const [tasksOverTime, setTasksOverTime] = useState<ChartData>({
     labels: [],
     datasets: [],
   });
-  const [completionRate, setCompletionRate] = useState<any>({
+  const [completionRate, setCompletionRate] = useState<ChartData>({
     labels: [],
     datasets: [],
   });
-  const [categoryDistribution, setCategoryDistribution] = useState<any>({
+  const [categoryDistribution, setCategoryDistribution] = useState<ChartData>({
     labels: [],
     datasets: [],
   });
@@ -64,7 +82,7 @@ export default function DataPage() {
       if (!tasks) return;
 
       // Process data for tasks over time
-      const tasksByDate = tasks.reduce((acc: any, task: any) => {
+      const tasksByDate = tasks.reduce((acc: Record<string, number>, task: Task) => {
         const date = new Date(task.created_at).toLocaleDateString();
         acc[date] = (acc[date] || 0) + 1;
         return acc;
@@ -83,8 +101,8 @@ export default function DataPage() {
       });
 
       // Process data for completion rate
-      const todos = tasks.filter((task: any) => task.type === 'Todo');
-      const completed = todos.filter((task: any) => task.completed).length;
+      const todos = tasks.filter((task: Task) => task.type === 'Todo');
+      const completed = todos.filter((task: Task) => task.completed).length;
       const total = todos.length;
       
       setCompletionRate({
@@ -98,7 +116,7 @@ export default function DataPage() {
       });
 
       // Process data for category distribution
-      const categories = tasks.reduce((acc: any, task: any) => {
+      const categories = tasks.reduce((acc: Record<string, number>, task: Task) => {
         const category = task.category || 'Uncategorized';
         acc[category] = (acc[category] || 0) + 1;
         return acc;

@@ -19,34 +19,6 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-const ANALYSIS_PROMPT = `Analyze the following task entry and categorize it according to these criteria:
-
-1. Name: Create a brief, clear name for the task
-2. Type: Choose one of: ["Focus", "Follow up", "Save for later"] based on these definitions:
-   - Focus: Proactive tasks or things to remember that need active attention, not just backlog items
-   - Follow up: Questions, requests, or tasks involving interactions with others that can be addressed next time you meet
-   - Save for later: Recommendations or discoveries (books, movies, restaurants, etc.) to reference when looking for something in that category
-
-3. Category: Choose one of: ["My questions", "Questions for me", "My asks", "Asks of me", "Recommendations", "Finds", "Ideas", "Rules / promises", "Daily accomplishments", "Night out", "Date night", "Family day"]
-4. Subcategory (optional): Choose one of: ["House", "Car", "Boat", "Travel", "Books", "Movies", "Shows", "Music", "Eats", "Podcasts", "Activities", "Appearance", "Career / network", "Rules", "Family / friends", "Gifts", "Finances", "Philanthropy", "Side quests"]
-5. Who: Extract any person's name from the task. This should be their actual name (e.g., "John", "Sarah Smith"), not a generic reference. If no specific name is mentioned, use an empty string.
-
-Guidelines for Type selection:
-- Use "Focus" for tasks that need proactive attention or shouldn't be forgotten
-- Use "Follow up" for interaction-based items that can wait for the next meeting/conversation
-- Use "Save for later" for recommendations and things to reference in the future
-
-For the Who field:
-- "Call John about the party" → who: "John"
-- "Meet Sarah Smith for coffee" → who: "Sarah Smith"
-- "Mom needs help with her computer" → who: ""
-- "Pick up groceries" → who: ""
-- "Review proposal with Mike from marketing" → who: "Mike"
-
-Respond in JSON format with these fields: name, type, category, subcategory (null if not applicable), who
-
-Task entry:`;
-
 export async function analyzeTask(entry: string): Promise<AnalysisResult> {
   try {
     const completion = await openai.chat.completions.create({

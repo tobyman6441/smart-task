@@ -40,7 +40,7 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
   if (!browserSupportsSpeechRecognition) {
     return (
       <div className="text-red-500 text-sm font-medium">
-        Browser doesn't support speech recognition.
+        Browser doesn&apos;t support speech recognition.
       </div>
     );
   }
