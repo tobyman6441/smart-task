@@ -167,7 +167,7 @@ export default function DataPage() {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Completion Rate of To-do's</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">Completion Rate of To-do&apos;s</h2>
             <div className="h-[300px]">
               <Pie
                 data={completionRate}
