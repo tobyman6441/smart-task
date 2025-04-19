@@ -110,10 +110,13 @@ export async function POST(request: Request) {
     let analysis;
     try {
       analysis = JSON.parse(analysisText);
-    } catch (parseError) {
+    } catch (error) {
       console.error('Failed to parse OpenAI response:', analysisText);
       return new NextResponse(
-        JSON.stringify({ error: 'Invalid JSON response from OpenAI' }),
+        JSON.stringify({ 
+          error: 'Invalid JSON response from OpenAI',
+          details: error instanceof Error ? error.message : 'Unknown parsing error'
+        }),
         {
           status: 500,
           headers: {
