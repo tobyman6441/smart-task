@@ -30,10 +30,17 @@ ChartJS.register(
 );
 
 // Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const getSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
 
 interface ChartData {
   labels: string[];
@@ -66,6 +73,7 @@ export default function DataPage() {
     labels: [],
     datasets: [],
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -73,11 +81,22 @@ export default function DataPage() {
 
   const fetchData = async () => {
     try {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setError('Unable to connect to database');
+        return;
+      }
+
       // Fetch tasks data
-      const { data: tasks } = await supabase
+      const { data: tasks, error: fetchError } = await supabase
         .from('tasks')
         .select('*')
         .order('created_at');
+
+      if (fetchError) {
+        setError('Error fetching tasks');
+        return;
+      }
 
       if (!tasks) return;
 

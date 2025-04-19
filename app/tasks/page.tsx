@@ -18,8 +18,14 @@ type TaskAnalysis = {
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      setError('Unable to connect to database');
+      return;
+    }
+
     fetchTasks();
     
     // Subscribe to real-time updates
@@ -39,18 +45,26 @@ export default function TasksPage() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
   const fetchTasks = async () => {
-    const { data, error } = await supabase
+    if (!supabase) {
+      setError('Unable to connect to database');
+      return;
+    }
+
+    const { data, error: fetchError } = await supabase
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching tasks:', error);
+    if (fetchError) {
+      console.error('Error fetching tasks:', fetchError);
+      setError('Error fetching tasks');
       return;
     }
 
@@ -58,10 +72,13 @@ export default function TasksPage() {
   };
 
   const handleEditTask = async (task: TaskAnalysis) => {
-    if (!task.id) return;
+    if (!task.id || !supabase) {
+      setError('Unable to edit task');
+      return;
+    }
     
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('tasks')
         .update({
           entry: task.entry,
@@ -74,7 +91,7 @@ export default function TasksPage() {
         })
         .eq('id', task.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       // Update local state
       handleTaskUpdate(task.id, {
@@ -88,7 +105,7 @@ export default function TasksPage() {
       });
     } catch (error) {
       console.error('Error saving task:', error);
-      alert('Failed to save task. Please try again.');
+      setError('Failed to save task');
     }
   };
 
@@ -99,6 +116,16 @@ export default function TasksPage() {
       )
     );
   };
+
+  if (error) {
+    return (
+      <main className="min-h-screen p-4 sm:p-8 bg-white text-black">
+        <div className="max-w-4xl mx-auto space-y-4 md:pl-4">
+          <div className="text-red-500">{error}</div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen p-4 sm:p-8 bg-white text-black">

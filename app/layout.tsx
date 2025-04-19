@@ -14,11 +14,15 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
+  themeColor: "white",
 };
 
 export const metadata: Metadata = {
   title: "Goal Canvas",
   description: "Voice-powered task management",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
