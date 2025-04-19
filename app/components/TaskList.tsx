@@ -25,6 +25,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
 
   const handleDelete = async (taskId: string) => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
       const { error } = await supabase
         .from('tasks')
         .delete()
@@ -42,6 +45,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
 
   const handleToggleComplete = async (taskId: string, isComplete: boolean) => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
       const { error } = await supabase
         .from('tasks')
         .update({ 
