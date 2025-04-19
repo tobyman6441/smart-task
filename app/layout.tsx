@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Work_Sans } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
@@ -9,10 +9,16 @@ const workSans = Work_Sans({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: "Goal Canvas",
   description: "Voice-powered task management",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
 };
 
 export default function RootLayout({

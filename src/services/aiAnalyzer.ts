@@ -14,14 +14,27 @@ interface AnalysisResult {
   due_date: string | null;
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
-});
+let openai: OpenAI | null = null;
+
+// Initialize OpenAI client only when needed and when API key is available
+const getOpenAIClient = () => {
+  if (!openai && typeof window !== 'undefined' && process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+      dangerouslyAllowBrowser: true
+    });
+  }
+  return openai;
+};
 
 export async function analyzeTask(entry: string): Promise<AnalysisResult> {
   try {
-    const completion = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    if (!client) {
+      throw new Error('OpenAI client not initialized - API key missing');
+    }
+
+    const completion = await client.chat.completions.create({
       messages: [
         {
           role: 'system',
