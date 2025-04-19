@@ -7,13 +7,13 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed md:static bottom-0 left-0 right-0 md:right-auto md:w-20 md:min-h-screen bg-white border-t md:border-t-0 md:border-r border-gray-200 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 md:static md:right-auto md:w-20 md:min-h-screen bg-white border-t md:border-t-0 md:border-r border-gray-200 pb-safe z-50 backdrop-blur-lg backdrop-saturate-150 bg-white/90">
       <div className="flex md:flex-col justify-around items-center h-16 md:h-auto md:pt-8">
         <Link
           href="/"
           className={`flex flex-col items-center justify-center flex-1 md:flex-none h-full md:h-auto md:py-4 md:w-full ${
             pathname === '/' ? 'text-black' : 'text-gray-500'
-          } hover:bg-gray-50 transition-colors`}
+          } hover:bg-gray-50 active:scale-95 active:bg-gray-100 transition-all duration-150`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +36,7 @@ export default function BottomNav() {
           href="/tasks"
           className={`flex flex-col items-center justify-center flex-1 md:flex-none h-full md:h-auto md:py-4 md:w-full ${
             pathname === '/tasks' ? 'text-black' : 'text-gray-500'
-          } hover:bg-gray-50 transition-colors`}
+          } hover:bg-gray-50 active:scale-95 active:bg-gray-100 transition-all duration-150`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +59,7 @@ export default function BottomNav() {
           href="/data"
           className={`flex flex-col items-center justify-center flex-1 md:flex-none h-full md:h-auto md:py-4 md:w-full ${
             pathname === '/data' ? 'text-black' : 'text-gray-500'
-          } hover:bg-gray-50 transition-colors`}
+          } hover:bg-gray-50 active:scale-95 active:bg-gray-100 transition-all duration-150`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

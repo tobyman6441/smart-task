@@ -32,10 +32,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${workSans.variable} antialiased pb-16 md:pb-0`}>
-        <div className="flex md:flex-row">
+      <body className={`${workSans.variable} antialiased pb-20 md:pb-0`}>
+        <div className="flex md:flex-row min-h-screen bg-white">
           <BottomNav />
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 w-full max-w-screen-2xl mx-auto">
+            {children}
+          </div>
         </div>
       </body>
     </html>
