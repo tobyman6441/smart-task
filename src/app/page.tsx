@@ -36,7 +36,11 @@ export default function Home() {
 
   const handleSaveTask = async (task: TaskAnalysis) => {
     try {
-      const { error } = await supabase
+      const supabaseClient = supabase();
+      if (!supabaseClient) {
+        throw new Error('Supabase client not initialized');
+      }
+      const { error } = await supabaseClient
         .from('tasks')
         .insert({
           entry: task.entry,
