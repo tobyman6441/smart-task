@@ -116,13 +116,13 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
 
         <div className={`grid grid-cols-1 ${mode === 'edit' ? 'max-w-lg mx-auto' : 'md:grid-cols-2'} gap-6`}>
           <div>
-            <label className={labelClasses}>Task Name</label>
+            <label className={labelClasses}>Entry Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={inputClasses}
-              placeholder="Enter task name"
+              placeholder="Enter entry name"
             />
           </div>
 
@@ -169,7 +169,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
                     {dueDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </>
                 ) : (
-                  'Optional: Set a deadline for this task'
+                  'Optional: Set a deadline for this entry'
                 )}
               </p>
             )}
@@ -258,9 +258,9 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
           <button
             type="button"
             onClick={handleSave}
-            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-lg shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+            className="w-full sm:w-auto px-4 py-4 text-sm font-medium text-white bg-black border border-transparent rounded-lg shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
           >
-            {mode === 'create' ? 'Add Task' : 'Save Changes'}
+            {mode === 'create' ? 'Add Entry' : 'Save Changes'}
           </button>
         </div>
       </div>

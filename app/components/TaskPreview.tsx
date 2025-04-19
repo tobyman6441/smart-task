@@ -22,7 +22,7 @@ export default function TaskPreview({ analysis, onCancel, onSave, mode }: Props)
     <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-medium text-gray-700">Task</h3>
+          <h3 className="text-sm font-medium text-gray-700">Entry Name</h3>
           <p className="mt-1 text-sm text-gray-900">{analysis.name}</p>
         </div>
 
@@ -59,9 +59,9 @@ export default function TaskPreview({ analysis, onCancel, onSave, mode }: Props)
           <button
             onClick={() => onSave(analysis)}
             type="button"
-            className="rounded-md bg-black px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800"
+            className="rounded-md bg-black px-2.5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-800"
           >
-            {mode === 'create' ? 'Add Task' : 'Save Changes'}
+            {mode === 'create' ? 'Add Entry' : 'Save Changes'}
           </button>
         </div>
       </div>

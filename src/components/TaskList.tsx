@@ -185,10 +185,10 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search list..."
-          className="w-full px-4 py-2.5 pl-10 text-sm border rounded-lg bg-gray-50 text-gray-900 border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+          className="w-full px-4 py-5 pl-10 text-sm border rounded-lg bg-gray-50 text-gray-900 border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         />
         <svg
-          className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -206,7 +206,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
       <div className="relative">
         <button
           onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-          className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
+          className="w-full flex items-center justify-between px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
         >
           <div className="flex items-center gap-2">
             <svg

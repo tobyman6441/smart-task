@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 interface TaskInputProps {
@@ -8,12 +8,18 @@ interface TaskInputProps {
 export default function TaskInput({ onSubmit }: TaskInputProps) {
   const [entry, setEntry] = useState('');
   const [isBrowserSupported, setIsBrowserSupported] = useState(true);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
     transcript,
     listening,
     resetTranscript,
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
+
+  useEffect(() => {
+    // Focus the textarea when component mounts
+    textareaRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     setIsBrowserSupported(browserSupportsSpeechRecognition);
@@ -46,6 +52,8 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="relative">
         <textarea
+          ref={textareaRef}
+          autoFocus
           value={entry}
           onChange={(e) => setEntry(e.target.value)}
           placeholder="Type or speak your entry here..."
@@ -84,7 +92,7 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="w-full sm:w-auto min-w-[120px] px-6 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-200 text-sm font-medium"
+          className="w-full sm:w-auto min-w-[120px] px-6 py-5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-200 text-sm font-medium"
         >
           Save
         </button>
