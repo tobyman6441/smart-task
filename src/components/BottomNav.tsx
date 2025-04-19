@@ -40,16 +40,15 @@ export default function BottomNav() {
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
+            viewBox="0 0 16 16"
+            className="w-6 h-6"
             stroke="currentColor"
-            className="w-7 h-7"
+            strokeWidth="2"
+            fill="none"
           >
             <path
               strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8 16.5h8M8 12h8m-8-5.5h8"
+              d="M2 4h12M2 8h12M2 12h12"
             />
           </svg>
           <span className="text-sm mt-1.5">View list</span>
