@@ -1,0 +1,90 @@
+import { useState, useEffect } from 'react';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+
+interface TaskInputProps {
+  onSubmit: (entry: string) => void;
+}
+
+export default function TaskInput({ onSubmit }: TaskInputProps) {
+  const [entry, setEntry] = useState('');
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
+
+  useEffect(() => {
+    if (transcript) {
+      setEntry(transcript);
+    }
+  }, [transcript]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (entry.trim()) {
+      onSubmit(entry.trim());
+      setEntry('');
+      resetTranscript();
+    }
+  };
+
+  const toggleListening = () => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+    } else {
+      SpeechRecognition.startListening({ continuous: true });
+    }
+  };
+
+  if (!browserSupportsSpeechRecognition) {
+    return (
+      <div className="text-red-500 text-sm font-medium">
+        Browser doesn't support speech recognition.
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="relative">
+        <textarea
+          value={entry}
+          onChange={(e) => setEntry(e.target.value)}
+          placeholder="Type or speak your task here..."
+          className="w-full h-32 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-white text-black placeholder-gray-400 text-base font-light transition-all duration-200 resize-none"
+        />
+        <button
+          type="button"
+          onClick={toggleListening}
+          className={`absolute bottom-4 right-4 p-2.5 rounded-full ${
+            listening ? 'bg-black' : 'bg-gray-100'
+          } transition-colors duration-200 hover:bg-gray-800`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke={listening ? 'white' : 'black'}
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          className="px-6 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-200 text-sm font-medium"
+        >
+          Scan & Save
+        </button>
+      </div>
+    </form>
+  );
+} 
