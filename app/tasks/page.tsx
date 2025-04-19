@@ -18,7 +18,6 @@ type TaskAnalysis = {
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -119,16 +118,6 @@ export default function TasksPage() {
       )
     );
   };
-
-  if (error) {
-    return (
-      <main className="min-h-screen p-4 sm:p-8 bg-white text-black">
-        <div className="max-w-4xl mx-auto space-y-4 md:pl-4">
-          <div className="text-red-500">{error}</div>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen p-4 sm:p-8 bg-white text-black">
