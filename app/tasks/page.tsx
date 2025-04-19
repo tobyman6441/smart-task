@@ -21,15 +21,16 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!supabase) {
-      setError('Unable to connect to database');
-      return;
-    }
-
     fetchTasks();
     
     // Subscribe to real-time updates
-    const channel = supabase
+    const supabaseClient = supabase();
+    if (!supabaseClient) {
+      console.error('Supabase client not initialized');
+      return;
+    }
+
+    const channel = supabaseClient
       .channel('tasks_channel')
       .on(
         'postgres_changes',
@@ -45,26 +46,26 @@ export default function TasksPage() {
       .subscribe();
 
     return () => {
-      if (supabase) {
-        supabase.removeChannel(channel);
+      if (supabaseClient) {
+        supabaseClient.removeChannel(channel);
       }
     };
   }, []);
 
   const fetchTasks = async () => {
-    if (!supabase) {
-      setError('Unable to connect to database');
+    const supabaseClient = supabase();
+    if (!supabaseClient) {
+      console.error('Supabase client not initialized');
       return;
     }
 
-    const { data, error: fetchError } = await supabase
+    const { data, error } = await supabaseClient
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (fetchError) {
-      console.error('Error fetching tasks:', fetchError);
-      setError('Error fetching tasks');
+    if (error) {
+      console.error('Error fetching tasks:', error);
       return;
     }
 
@@ -72,13 +73,15 @@ export default function TasksPage() {
   };
 
   const handleEditTask = async (task: TaskAnalysis) => {
-    if (!task.id || !supabase) {
-      setError('Unable to edit task');
-      return;
-    }
+    if (!task.id) return;
     
     try {
-      const { error: updateError } = await supabase
+      const supabaseClient = supabase();
+      if (!supabaseClient) {
+        throw new Error('Supabase client not initialized');
+      }
+
+      const { error } = await supabaseClient
         .from('tasks')
         .update({
           entry: task.entry,
@@ -91,7 +94,7 @@ export default function TasksPage() {
         })
         .eq('id', task.id);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
       // Update local state
       handleTaskUpdate(task.id, {
@@ -105,7 +108,7 @@ export default function TasksPage() {
       });
     } catch (error) {
       console.error('Error saving task:', error);
-      setError('Failed to save task');
+      alert('Failed to save task. Please try again.');
     }
   };
 
