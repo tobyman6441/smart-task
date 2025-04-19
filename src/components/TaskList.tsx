@@ -45,13 +45,13 @@ const TASK_SUBCATEGORIES: TaskSubcategory[] = [
   'Side quests'
 ];
 
-interface TaskListProps {
+type Props = {
   tasks: Task[];
   onEditTask: (task: Task) => void;
   onTaskUpdate: (taskId: string, updates: Partial<Task> | null) => void;
-}
+};
 
-export default function TaskList({ tasks, onEditTask, onTaskUpdate }: TaskListProps) {
+export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');

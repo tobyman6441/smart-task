@@ -111,11 +111,13 @@ export default function TasksPage() {
     }
   };
 
-  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task> | null) => {
     setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId ? { ...task, ...updates } : task
-      )
+      updates === null 
+        ? prevTasks.filter(task => task.id !== taskId)
+        : prevTasks.map(task => 
+            task.id === taskId ? { ...task, ...updates } : task
+          )
     );
   };
 
