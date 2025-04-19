@@ -24,11 +24,25 @@ export async function analyzeTask(entry: string): Promise<TaskAnalysis> {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to analyze task');
+      const errorData = await response.json();
+      throw new Error(errorData.details || errorData.error || 'Failed to analyze task');
     }
 
     const analysis = await response.json();
-    return analysis;
+    
+    // Ensure all required fields are present
+    if (!analysis.name || !analysis.type || !analysis.category) {
+      throw new Error('Invalid response format from analysis');
+    }
+
+    return {
+      name: analysis.name,
+      type: analysis.type as TaskType,
+      category: analysis.category as TaskCategory,
+      subcategory: analysis.subcategory as TaskSubcategory | null,
+      who: analysis.who || '',
+      due_date: analysis.due_date || null
+    };
   } catch (error) {
     console.error('Error analyzing task:', error);
     throw error;

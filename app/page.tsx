@@ -28,7 +28,7 @@ export default function Home() {
       setCurrentAnalysis({ entry, ...analysis });
     } catch (error) {
       console.error('Error analyzing task:', error);
-      alert('Failed to analyze task. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to analyze task. Please try again.');
     } finally {
       setIsLoading(false);
     }

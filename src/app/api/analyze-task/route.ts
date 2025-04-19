@@ -11,12 +11,22 @@ export async function POST(request: Request) {
     const { entry } = await request.json();
 
     if (!entry) {
+      console.error('No entry provided in request body');
       return NextResponse.json(
         { error: 'Entry text is required' },
         { status: 400 }
       );
     }
 
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('OpenAI API key is not configured');
+      return NextResponse.json(
+        { error: 'OpenAI API key is not configured' },
+        { status: 500 }
+      );
+    }
+
+    console.log('Attempting to analyze task with OpenAI...');
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
@@ -40,15 +50,29 @@ export async function POST(request: Request) {
       ],
       temperature: 0.7,
       max_tokens: 500,
+      response_format: { type: "json_object" }
     });
 
-    const analysis = JSON.parse(completion.choices[0].message.content || '{}');
+    const analysisText = completion.choices[0].message.content;
+    if (!analysisText) {
+      console.error('OpenAI returned empty response');
+      throw new Error('Empty response from OpenAI');
+    }
+
+    console.log('OpenAI response:', analysisText);
+    const analysis = JSON.parse(analysisText);
 
     return NextResponse.json(analysis);
   } catch (error) {
-    console.error('Error analyzing task:', error);
+    // Log the full error details
+    console.error('Error in analyze-task API route:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to analyze task' },
+      { error: 'Failed to analyze task', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
