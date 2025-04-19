@@ -62,13 +62,19 @@ interface TaskPreviewProps {
   mode?: 'create' | 'edit';
 }
 
+const parseDateSafely = (dateString: string | null | undefined): Date | null => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? null : date;
+};
+
 export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create' }: TaskPreviewProps) {
   const [name, setName] = useState(analysis.name);
   const [type, setType] = useState<TaskType>(analysis.type);
   const [category, setCategory] = useState<TaskCategory>(analysis.category);
   const [subcategory, setSubcategory] = useState<TaskSubcategory | null>(analysis.subcategory);
   const [who, setWho] = useState(analysis.who || '');
-  const [dueDate, setDueDate] = useState<Date | null>(analysis.due_date ? new Date(analysis.due_date) : null);
+  const [dueDate, setDueDate] = useState<Date | null>(parseDateSafely(analysis.due_date));
 
   // Update state when analysis changes
   useEffect(() => {
@@ -77,7 +83,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
     setCategory(analysis.category);
     setSubcategory(analysis.subcategory);
     setWho(analysis.who || '');
-    setDueDate(analysis.due_date ? new Date(analysis.due_date) : null);
+    setDueDate(parseDateSafely(analysis.due_date));
   }, [analysis]);
 
   const handleSave = () => {

@@ -7,12 +7,16 @@ import { analyzeTask } from '@/services/aiAnalyzer';
 import { supabase } from '@/utils/supabase';
 import { Database } from '@/types/supabase';
 
+type TaskType = Database['public']['Enums']['task_type'];
+type TaskCategory = Database['public']['Enums']['task_category'];
+type TaskSubcategory = Database['public']['Enums']['task_subcategory'];
+
 type TaskAnalysis = {
   entry: string;
   name: string;
-  type: Database['public']['Enums']['task_type'];
-  category: Database['public']['Enums']['task_category'];
-  subcategory: Database['public']['Enums']['task_subcategory'] | null;
+  type: TaskType;
+  category: TaskCategory;
+  subcategory: TaskSubcategory | null;
   who: string;
   id?: string;
 };
@@ -28,7 +32,15 @@ export default function Home() {
       setCurrentAnalysis({ entry, ...analysis });
     } catch (error) {
       console.error('Error analyzing task:', error);
-      alert(error instanceof Error ? error.message : 'Failed to analyze task. Please try again.');
+      // If AI analysis fails, create a default analysis for manual entry
+      setCurrentAnalysis({
+        entry,
+        name: '',
+        type: 'Focus' as TaskType,
+        category: 'Todos' as TaskCategory,
+        subcategory: null,
+        who: '',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +81,7 @@ export default function Home() {
           <TaskInput onSubmit={handleTaskSubmit} />
           {isLoading && (
             <div className="mt-4 text-center text-gray-600">
-              Analyzing your task...
+              Analyzing your entry...
             </div>
           )}
           {currentAnalysis && (
