@@ -57,7 +57,7 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
           value={entry}
           onChange={(e) => setEntry(e.target.value)}
           placeholder="Type or speak your entry here..."
-          className="w-full h-32 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-white text-black placeholder-gray-400 text-base font-light transition-all duration-200 resize-none"
+          className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-white text-black placeholder-gray-400 text-base font-light transition-all duration-200 resize-none"
         />
         {isBrowserSupported && (
           <button
