@@ -151,34 +151,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Confirmation Modal */}
-      {deleteTaskId && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-lg">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Delete Entry
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this entry? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setDeleteTaskId(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deleteTaskId)}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Search and filters section */}
       <div className="relative">
         <input
           type="text"
@@ -203,6 +176,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
         </svg>
       </div>
 
+      {/* Filters button and panel */}
       <div className="relative">
         <button
           onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
@@ -308,131 +282,199 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
         </div>
       </div>
 
-      <div className="mt-8 space-y-4">
-        {filteredTasks.map((task) => (
-          <div
-            key={task.id}
-            ref={el => { taskRefs.current[task.id] = el }}
-            className={`bg-white rounded-lg shadow p-6 ${task.completed ? 'opacity-50' : ''}`}
-          >
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="relative flex-shrink-0 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={task.completed}
-                      onChange={(e) => handleComplete(task.id, e.target.checked)}
-                      className="peer h-6 w-6 cursor-pointer appearance-none rounded-full border-2 border-gray-300 transition-all checked:border-black checked:bg-black hover:border-black"
-                      style={{ marginTop: '2px' }}
-                    />
-                    <svg
-                      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[45%] opacity-0 text-white transition-opacity peer-checked:opacity-100"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M10 3L4.5 8.5L2 6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+      {/* Task list section */}
+      <div className="mt-8">
+        {/* Desktop spreadsheet view */}
+        <div className="hidden md:block">
+          <div className="min-w-full divide-y divide-gray-200">
+            <div className="bg-gray-50">
+              <div className="grid grid-cols-12 gap-2 px-4 py-3 text-sm font-medium text-gray-500">
+                <div className="col-span-1"></div>
+                <div className="col-span-3">Name</div>
+                <div className="col-span-2">Type</div>
+                <div className="col-span-2">Category</div>
+                <div className="col-span-2">Subcategory</div>
+                <div className="col-span-1">Who</div>
+                <div className="col-span-1"></div>
+              </div>
+            </div>
+            <div className="divide-y divide-gray-200 bg-white">
+              {filteredTasks.map((task) => (
+                <div
+                  key={task.id}
+                  ref={el => { taskRefs.current[task.id] = el }}
+                  className={`grid grid-cols-12 gap-2 px-4 py-3 text-sm ${task.completed ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50'}`}
+                >
+                  <div className="col-span-1 flex items-center">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={task.completed}
+                        onChange={(e) => handleComplete(task.id, e.target.checked)}
+                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-300 transition-all checked:border-black checked:bg-black hover:border-black"
                       />
-                    </svg>
+                      <svg
+                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 text-white transition-opacity peer-checked:opacity-100"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10 3L4.5 8.5L2 6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
                   </div>
-                  <h3 className={`text-lg font-medium text-gray-900 ${
-                    task.completed ? 'line-through text-gray-400' : ''
-                  }`}>
-                    {task.name}
-                  </h3>
-                </div>
-                {task.due_date && (
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      className={`h-4 w-4 ${
-                        new Date(task.due_date) < new Date() ? 'text-red-500' : 'text-gray-400'
-                      }`}
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
-                      />
-                    </svg>
-                    <span className={`text-sm font-medium ${
-                      new Date(task.due_date) < new Date() 
-                        ? 'text-red-600 bg-red-50 px-2 py-0.5 rounded-full' 
-                        : 'text-gray-500'
-                    }`}>
-                      {new Date(task.due_date) < new Date() ? 'Overdue: ' : 'Due: '}
-                      {new Date(task.due_date).toLocaleDateString()} at {new Date(task.due_date).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true})}
+                  <div className="col-span-3 flex items-center">
+                    <span className={task.completed ? 'line-through text-gray-400' : 'text-gray-900'}>
+                      {task.name}
                     </span>
                   </div>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {task.who && (
-                  <span className="inline-flex px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                    {task.who}
+                  <div className="col-span-2 flex items-center">
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/10">
+                      {task.type}
+                    </span>
+                  </div>
+                  <div className="col-span-2 flex items-center">
+                    <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/10">
+                      {task.category}
+                    </span>
+                  </div>
+                  <div className="col-span-2 flex items-center">
+                    {task.subcategory && (
+                      <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/10">
+                        {task.subcategory}
+                      </span>
+                    )}
+                  </div>
+                  <div className="col-span-1 flex items-center">
+                    {task.who && (
+                      <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/10">
+                        {task.who}
+                      </span>
+                    )}
+                  </div>
+                  <div className="col-span-1 flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => handleEditClick(task)}
+                      className="rounded-full p-1 hover:bg-gray-100"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                        <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                        <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setDeleteTaskId(task.id)}
+                      className="rounded-full p-1 hover:bg-gray-100 text-red-600"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile card view */}
+        <div className="md:hidden space-y-4">
+          {filteredTasks.map((task) => (
+            <div
+              key={task.id}
+              ref={el => { taskRefs.current[task.id] = el }}
+              className={`bg-white rounded-lg shadow p-6 ${task.completed ? 'opacity-50' : ''}`}
+            >
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="relative flex-shrink-0 flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={task.completed}
+                        onChange={(e) => handleComplete(task.id, e.target.checked)}
+                        className="peer h-6 w-6 cursor-pointer appearance-none rounded-full border-2 border-gray-300 transition-all checked:border-black checked:bg-black hover:border-black"
+                        style={{ marginTop: '2px' }}
+                      />
+                      <svg
+                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[45%] opacity-0 text-white transition-opacity peer-checked:opacity-100"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10 3L4.5 8.5L2 6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className={`text-lg font-medium text-gray-900 ${
+                      task.completed ? 'line-through text-gray-400' : ''
+                    }`}>
+                      {task.name}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEditClick(task)}
+                      className="rounded-full p-2 hover:bg-gray-100"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                        <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                        <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                    {task.type}
                   </span>
-                )}
-                <span className="inline-flex px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                  {task.type}
-                </span>
-                <span className="inline-flex px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                  {task.category}
-                </span>
-                {task.subcategory && (
-                  <span className="inline-flex px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                    {task.subcategory}
+                  <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                    {task.category}
                   </span>
-                )}
-              </div>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-gray-600">
-                  Created: {new Date(task.created_at!).toLocaleDateString()}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditClick(task)}
-                    className="px-3 py-1.5 text-sm font-medium text-black hover:bg-gray-50 rounded-lg border-2 border-black transition-colors duration-200"
-                  >
-                    {editingTaskId === task.id ? 'Cancel Edit' : 'Edit'}
-                  </button>
+                  {task.subcategory && (
+                    <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                      {task.subcategory}
+                    </span>
+                  )}
+                  {task.who && (
+                    <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                      {task.who}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
-            {editingTaskId === task.id && (
-              <div className="border-t border-gray-200 p-4 bg-gray-50">
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">Original Entry</h4>
-                  <p className="text-sm text-gray-900">{task.entry}</p>
-                </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Edit mode and delete confirmation modal */}
+      {editingTaskId && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-lg max-h-[90vh] overflow-y-auto">
+            {(() => {
+              const task = tasks.find(t => t.id === editingTaskId);
+              if (!task) return null;
+              return (
                 <TaskPreview
-                  onCancel={() => setEditingTaskId(null)}
-                  onSave={(updatedTask) => {
-                    onEditTask({
-                      ...task,
-                      entry: updatedTask.entry,
-                      name: updatedTask.name,
-                      type: updatedTask.type,
-                      category: updatedTask.category,
-                      subcategory: updatedTask.subcategory,
-                      who: updatedTask.who,
-                      due_date: updatedTask.due_date || null
-                    });
-                    setEditingTaskId(null);
-                  }}
+                  key={editingTaskId}
                   analysis={{
-                    id: task.id,
+                    id: editingTaskId,
                     entry: task.entry,
                     name: task.name,
                     type: task.type,
@@ -441,21 +483,56 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     who: task.who,
                     due_date: task.due_date
                   }}
+                  onCancel={() => setEditingTaskId(null)}
+                  onSave={(updatedTask) => {
+                    onEditTask({
+                      ...task,
+                      entry: updatedTask.entry,
+                      name: updatedTask.name,
+                      type: updatedTask.type as TaskType,
+                      category: updatedTask.category as TaskCategory,
+                      subcategory: updatedTask.subcategory as TaskSubcategory | null,
+                      who: updatedTask.who,
+                      due_date: updatedTask.due_date || null
+                    });
+                    setEditingTaskId(null);
+                  }}
+                  onDelete={() => handleDelete(editingTaskId)}
                   mode="edit"
                 />
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => setDeleteTaskId(task.id)}
-                    className="w-full px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border-2 border-red-600 transition-colors duration-200"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteTaskId && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-lg">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Delete Entry
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this entry? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteTaskId(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deleteTaskId)}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
