@@ -242,83 +242,105 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: TaskListPr
             ref={el => { taskRefs.current[task.id] = el }}
             className={`bg-white rounded-lg shadow p-6 ${task.completed ? 'opacity-50' : ''}`}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-4">
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={(e) => handleComplete(task.id, e.target.checked)}
-                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                  />
-                  <h3 className="text-lg font-medium text-gray-900">{task.name}</h3>
-                  {task.due_date && (
-                    <div className="flex items-center gap-2">
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className={`h-4 w-4 ${
-                          new Date(task.due_date) < new Date() ? 'text-red-500' : 'text-gray-400'
-                        }`}
-                        fill="none" 
-                        viewBox="0 0 24 24" 
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="relative flex-shrink-0 flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={(e) => handleComplete(task.id, e.target.checked)}
+                      className="peer h-6 w-6 cursor-pointer appearance-none rounded-full border-2 border-gray-300 transition-all checked:border-black checked:bg-black hover:border-black"
+                      style={{ marginTop: '2px' }}
+                    />
+                    <svg
+                      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[45%] opacity-0 text-white transition-opacity peer-checked:opacity-100"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 3L4.5 8.5L2 6"
                         stroke="currentColor"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
-                        />
-                      </svg>
-                      <span className={`text-sm font-medium ${
-                        new Date(task.due_date) < new Date() 
-                          ? 'text-red-600 bg-red-50 px-2 py-0.5 rounded-full' 
-                          : 'text-gray-500'
-                      }`}>
-                        {new Date(task.due_date) < new Date() ? 'Overdue: ' : 'Due: '}
-                        {new Date(task.due_date).toLocaleDateString()} at {new Date(task.due_date).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true})}
-                      </span>
-                    </div>
-                  )}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className={`text-lg font-medium text-gray-900 ${
+                    task.completed ? 'line-through text-gray-400' : ''
+                  }`}>
+                    {task.name}
+                  </h3>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {task.who && (
-                    <span className="inline-flex px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                      {task.who}
+                {task.due_date && (
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className={`h-4 w-4 ${
+                        new Date(task.due_date) < new Date() ? 'text-red-500' : 'text-gray-400'
+                      }`}
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                      />
+                    </svg>
+                    <span className={`text-sm font-medium ${
+                      new Date(task.due_date) < new Date() 
+                        ? 'text-red-600 bg-red-50 px-2 py-0.5 rounded-full' 
+                        : 'text-gray-500'
+                    }`}>
+                      {new Date(task.due_date) < new Date() ? 'Overdue: ' : 'Due: '}
+                      {new Date(task.due_date).toLocaleDateString()} at {new Date(task.due_date).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true})}
                     </span>
-                  )}
-                  <span className="inline-flex px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                    {task.type}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {task.who && (
+                  <span className="inline-flex px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                    {task.who}
                   </span>
-                  <span className="inline-flex px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                    {task.category}
+                )}
+                <span className="inline-flex px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  {task.type}
+                </span>
+                <span className="inline-flex px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                  {task.category}
+                </span>
+                {task.subcategory && (
+                  <span className="inline-flex px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                    {task.subcategory}
                   </span>
-                  {task.subcategory && (
-                    <span className="inline-flex px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                      {task.subcategory}
-                    </span>
-                  )}
-                </div>
-                <p className={`mt-3 text-gray-700 ${
-                  task.completed ? 'line-through text-gray-400' : ''
-                }`}>
-                  {task.entry}
-                </p>
-                <div className="mt-3 flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
-                    Created: {new Date(task.created_at!).toLocaleDateString()}
-                  </span>
-                  <button
-                    onClick={() => handleEditClick(task)}
-                    className="px-3 py-1.5 text-sm font-medium text-black hover:bg-gray-50 rounded-lg border-2 border-black transition-colors duration-200"
-                  >
-                    {editingTaskId === task.id ? 'Cancel Edit' : 'Edit'}
-                  </button>
-                </div>
+                )}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">
+                  Created: {new Date(task.created_at!).toLocaleDateString()}
+                </span>
+                <button
+                  onClick={() => handleEditClick(task)}
+                  className="px-3 py-1.5 text-sm font-medium text-black hover:bg-gray-50 rounded-lg border-2 border-black transition-colors duration-200"
+                >
+                  {editingTaskId === task.id ? 'Cancel Edit' : 'Edit'}
+                </button>
               </div>
             </div>
             {editingTaskId === task.id && (
               <div className="border-t border-gray-200 p-4 bg-gray-50">
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">Original Entry</h4>
+                  <p className="text-sm text-gray-900">{task.entry}</p>
+                </div>
                 <TaskPreview
                   onCancel={() => setEditingTaskId(null)}
                   onSave={(updatedTask) => {

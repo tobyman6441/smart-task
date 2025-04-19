@@ -105,13 +105,18 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
   return (
     <div className={`${mode === 'edit' ? 'mt-0 relative' : 'mt-8 border-t border-gray-100 pt-8'} mb-24 sm:mb-0`}>
       <h3 className={`text-xl font-semibold mb-6 text-black ${mode === 'edit' ? 'text-center' : ''}`}>
-        {mode === 'create' ? 'Scan results' : 'Edit Task'}
+        {mode === 'create' ? 'Scan results' : 'Edit entry'}
       </h3>
       
       <div className="space-y-6">
+        <div className="bg-gray-100 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-1">Original Entry</h4>
+          <p className="text-sm text-gray-900">{analysis.entry}</p>
+        </div>
+
         <div className={`grid grid-cols-1 ${mode === 'edit' ? 'max-w-lg mx-auto' : 'md:grid-cols-2'} gap-6`}>
           <div>
-            <label className={`${labelClasses} ${mode === 'edit' ? 'text-center block' : ''}`}>Task Name</label>
+            <label className={labelClasses}>Task Name</label>
             <input
               type="text"
               value={name}
@@ -121,7 +126,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
           </div>
 
           <div>
-            <label className={`${labelClasses} ${mode === 'edit' ? 'text-center block' : ''}`}>Due Date</label>
+            <label className={labelClasses}>Due Date</label>
             <div className="relative">
               <DatePicker
                 selected={dueDate}
@@ -170,7 +175,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
           </div>
 
           <div>
-            <label className={`${labelClasses} ${mode === 'edit' ? 'text-center block' : ''}`}>Type</label>
+            <label className={labelClasses}>Type</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as TaskType)}
@@ -183,7 +188,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
           </div>
 
           <div>
-            <label className={`${labelClasses} ${mode === 'edit' ? 'text-center block' : ''}`}>Category</label>
+            <label className={labelClasses}>Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as TaskCategory)}
@@ -196,7 +201,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
           </div>
 
           <div>
-            <label className={`${labelClasses} ${mode === 'edit' ? 'text-center block' : ''}`}>Subcategory</label>
+            <label className={labelClasses}>Subcategory</label>
             <select
               value={subcategory || ''}
               onChange={(e) => setSubcategory(e.target.value as TaskSubcategory)}
@@ -210,7 +215,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
           </div>
 
           <div>
-            <label className={`${labelClasses} ${mode === 'edit' ? 'text-center block' : ''}`}>Who</label>
+            <label className={labelClasses}>Who</label>
             <input
               type="text"
               value={who}
