@@ -17,8 +17,12 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
   } = useSpeechRecognition();
 
   useEffect(() => {
-    // Focus the textarea when component mounts
-    textareaRef.current?.focus();
+    // Focus the textarea and open keyboard when component mounts
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      // Trigger click to ensure keyboard opens on mobile
+      textareaRef.current.click();
+    }
   }, []);
 
   useEffect(() => {
