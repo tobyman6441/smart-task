@@ -62,7 +62,11 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: TaskListPr
 
   const handleComplete = async (taskId: string, completed: boolean) => {
     try {
-      const { error } = await supabase
+      const supabaseClient = supabase();
+      if (!supabaseClient) {
+        throw new Error('Supabase client not initialized');
+      }
+      const { error } = await supabaseClient
         .from('tasks')
         .update({ completed })
         .eq('id', taskId);
