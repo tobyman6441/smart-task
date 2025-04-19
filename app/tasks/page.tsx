@@ -111,12 +111,17 @@ export default function TasksPage() {
     }
   };
 
-  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task> | null) => {
+    setTasks(prevTasks => {
+      if (updates === null) {
+        // If updates is null, remove the task from the list
+        return prevTasks.filter(task => task.id !== taskId);
+      }
+      // Otherwise, update the task as before
+      return prevTasks.map(task => 
         task.id === taskId ? { ...task, ...updates } : task
-      )
-    );
+      );
+    });
   };
 
   return (

@@ -84,7 +84,7 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="px-6 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-200 text-sm font-medium"
+          className="w-full sm:w-auto min-w-[120px] px-6 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-200 text-sm font-medium"
         >
           Save
         </button>

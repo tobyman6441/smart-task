@@ -99,7 +99,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
     });
   };
 
-  const inputClasses = "w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black bg-white text-sm transition-all duration-200 font-light";
+  const inputClasses = "w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black bg-white text-sm transition-all duration-200 font-light appearance-none";
   const labelClasses = "block text-sm font-medium text-gray-600 mb-1.5";
 
   return (
@@ -122,6 +122,7 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={inputClasses}
+              placeholder="Enter task name"
             />
           </div>
 
@@ -176,42 +177,63 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
 
           <div>
             <label className={labelClasses}>Type</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as TaskType)}
-              className={inputClasses}
-            >
-              {TASK_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value as TaskType)}
+                className={`${inputClasses} pr-10`}
+              >
+                {TASK_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div>
             <label className={labelClasses}>Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as TaskCategory)}
-              className={inputClasses}
-            >
-              {TASK_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as TaskCategory)}
+                className={`${inputClasses} pr-10`}
+              >
+                {TASK_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div>
             <label className={labelClasses}>Subcategory</label>
-            <select
-              value={subcategory || ''}
-              onChange={(e) => setSubcategory(e.target.value as TaskSubcategory)}
-              className={inputClasses}
-            >
-              <option value="">None</option>
-              {TASK_SUBCATEGORIES.map((sc) => (
-                <option key={sc} value={sc}>{sc}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={subcategory || ''}
+                onChange={(e) => setSubcategory(e.target.value as TaskSubcategory)}
+                className={`${inputClasses} pr-10`}
+              >
+                <option value="">None</option>
+                {TASK_SUBCATEGORIES.map((sc) => (
+                  <option key={sc} value={sc}>{sc}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -225,20 +247,20 @@ export default function TaskPreview({ onCancel, onSave, analysis, mode = 'create
           </div>
         </div>
 
-        <div className="flex justify-end space-x-4">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-lg shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
           >
-            Save
+            {mode === 'create' ? 'Add Task' : 'Save Changes'}
           </button>
         </div>
       </div>
