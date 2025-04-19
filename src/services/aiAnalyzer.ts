@@ -8,9 +8,9 @@ export interface TaskAnalysis {
   name: string;
   type: TaskType;
   category: TaskCategory;
-  subcategory?: TaskSubcategory;
-  who?: string;
-  due_date?: string | null;
+  subcategory: TaskSubcategory | null;
+  who: string;
+  due_date: string | null;
 }
 
 export async function analyzeTask(entry: string): Promise<TaskAnalysis> {
