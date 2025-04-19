@@ -1,39 +1,16 @@
-import OpenAI from 'openai';
 import { Database } from '@/types/supabase';
 
 type TaskType = Database['public']['Enums']['task_type'];
 type TaskCategory = Database['public']['Enums']['task_category'];
 type TaskSubcategory = Database['public']['Enums']['task_subcategory'];
 
-interface AnalysisResult {
+export interface TaskAnalysis {
   name: string;
   type: TaskType;
   category: TaskCategory;
-  subcategory: TaskSubcategory | null;
-  who: string;
-  due_date: string | null;
-}
-
-let openai: OpenAI | null = null;
-
-// Initialize OpenAI client only when needed and when API key is available
-const getOpenAIClient = () => {
-  if (!openai && typeof window !== 'undefined' && process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
-    openai = new OpenAI({
-      apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-      dangerouslyAllowBrowser: true
-    });
-  }
-  return openai;
-};
-
-export interface TaskAnalysis {
-  name: string;
-  type: string;
-  category: string;
-  subcategory?: string;
+  subcategory?: TaskSubcategory;
   who?: string;
-  due_date?: string;
+  due_date?: string | null;
 }
 
 export async function analyzeTask(entry: string): Promise<TaskAnalysis> {
