@@ -25,10 +25,11 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
 
   const handleDelete = async (taskId: string) => {
     try {
-      if (!supabase) {
+      const supabaseClient = supabase();
+      if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
       }
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('tasks')
         .delete()
         .eq('id', taskId);
@@ -45,10 +46,11 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
 
   const handleToggleComplete = async (taskId: string, isComplete: boolean) => {
     try {
-      if (!supabase) {
+      const supabaseClient = supabase();
+      if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
       }
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('tasks')
         .update({ 
           completed: isComplete,

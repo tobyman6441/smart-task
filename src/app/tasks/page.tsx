@@ -23,7 +23,13 @@ export default function TasksPage() {
     fetchTasks();
     
     // Subscribe to real-time updates
-    const channel = supabase
+    const supabaseClient = supabase();
+    if (!supabaseClient) {
+      console.error('Supabase client not initialized');
+      return;
+    }
+
+    const channel = supabaseClient
       .channel('tasks_channel')
       .on(
         'postgres_changes',
@@ -39,12 +45,20 @@ export default function TasksPage() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (supabaseClient) {
+        supabaseClient.removeChannel(channel);
+      }
     };
   }, []);
 
   const fetchTasks = async () => {
-    const { data, error } = await supabase
+    const supabaseClient = supabase();
+    if (!supabaseClient) {
+      console.error('Supabase client not initialized');
+      return;
+    }
+
+    const { data, error } = await supabaseClient
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
@@ -61,7 +75,12 @@ export default function TasksPage() {
     if (!task.id) return;
     
     try {
-      const { error } = await supabase
+      const supabaseClient = supabase();
+      if (!supabaseClient) {
+        throw new Error('Supabase client not initialized');
+      }
+
+      const { error } = await supabaseClient
         .from('tasks')
         .update({
           entry: task.entry,
