@@ -61,7 +61,6 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
   const [subcategory, setSubcategory] = useState<TaskSubcategory | null>(analysis.subcategory);
   const [who, setWho] = useState(analysis.who || '');
   const [dueDate, setDueDate] = useState<Date | null>(analysis.due_date ? new Date(analysis.due_date) : null);
-  const [completed, setCompleted] = useState(analysis.completed || false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Update state when analysis changes
@@ -79,7 +78,6 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
       value: parsed ? parsed.toISOString() : null
     });
     setDueDate(parsed);
-    setCompleted(analysis.completed || false);
   }, [analysis]);
 
   const handleDateChange = (date: Date | null) => {
