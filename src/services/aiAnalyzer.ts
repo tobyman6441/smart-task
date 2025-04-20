@@ -1,7 +1,7 @@
 import { Database } from '@/types/supabase';
 
 type TaskType = Database['public']['Enums']['task_type'];
-type TaskCategory = Database['public']['Enums']['task_category'];
+type TaskCategory = Database['public']['Enums']['task_category_new'];
 type TaskSubcategory = Database['public']['Enums']['task_subcategory'];
 
 export interface TaskAnalysis {

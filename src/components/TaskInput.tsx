@@ -98,7 +98,7 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
           type="submit"
           className="w-full sm:w-auto min-w-[120px] px-6 py-5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-200 text-sm font-medium"
         >
-          Save
+          Add Entry
         </button>
       </div>
     </form>

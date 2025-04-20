@@ -8,10 +8,12 @@ type TaskAnalysis = {
   entry: string;
   name: string;
   type: Database['public']['Enums']['task_type'];
-  category: Database['public']['Enums']['task_category'];
+  category: Database['public']['Enums']['task_category_new'];
   subcategory: Database['public']['Enums']['task_subcategory'] | null;
   who: string;
   id?: string;
+  due_date?: string | null;
+  completed?: boolean;
 };
 
 type Props = {

@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { Database } from '@/types/supabase';
-
-type TaskType = Database['public']['Enums']['task_type'];
-type TaskCategory = Database['public']['Enums']['task_category'];
-type TaskSubcategory = Database['public']['Enums']['task_subcategory'];
+import { TaskType, TaskCategory, TaskSubcategory, TaskAnalysis } from '@/types/task';
 
 const TASK_TYPES: TaskType[] = ['Focus', 'Follow up', 'Save for later'];
 const TASK_CATEGORIES: TaskCategory[] = [
@@ -44,22 +40,11 @@ const TASK_SUBCATEGORIES: TaskSubcategory[] = [
   'Side quests'
 ];
 
-interface TaskData {
-  entry: string;
-  name: string;
-  type: TaskType;
-  category: TaskCategory;
-  subcategory: TaskSubcategory | null;
-  who: string;
-  due_date?: string | null;
-  id?: string;
-}
-
 interface TaskPreviewProps {
   onCancel: () => void;
-  onSave: (task: TaskData) => void;
+  onSave: (task: TaskAnalysis) => void;
   onDelete?: (taskId: string) => void;
-  analysis: TaskData;
+  analysis: TaskAnalysis;
   mode?: 'create' | 'edit';
 }
 
@@ -76,6 +61,7 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
   const [subcategory, setSubcategory] = useState<TaskSubcategory | null>(analysis.subcategory);
   const [who, setWho] = useState(analysis.who || '');
   const [dueDate, setDueDate] = useState<Date | null>(parseDateSafely(analysis.due_date));
+  const [completed, setCompleted] = useState(analysis.completed || false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Update state when analysis changes
@@ -86,9 +72,37 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
     setSubcategory(analysis.subcategory);
     setWho(analysis.who || '');
     setDueDate(parseDateSafely(analysis.due_date));
+    setCompleted(analysis.completed || false);
   }, [analysis]);
 
-  const handleSave = () => {
+  const handleSave = (completed: boolean = false) => {
+    // Create the task object with explicit due_date handling
+    const taskToSave: TaskAnalysis = {
+      entry: analysis.entry,
+      name,
+      type,
+      category,
+      subcategory,
+      who,
+      // Explicitly convert Date to ISO string when present
+      due_date: dueDate instanceof Date ? dueDate.toISOString() : null,
+      id: analysis.id,
+      completed: completed || analysis.completed || false
+    };
+
+    console.log('TaskPreview saving task:', {
+      ...taskToSave,
+      due_date_type: dueDate ? typeof dueDate : 'null',
+      due_date_instanceof_date: dueDate instanceof Date,
+      due_date_raw: dueDate
+    });
+
+    onSave(taskToSave);
+  };
+
+  const handleLogEntry = () => {
+    const now = new Date();
+    setDueDate(now);
     onSave({
       entry: analysis.entry,
       name,
@@ -96,8 +110,9 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
       category,
       subcategory,
       who,
-      due_date: dueDate ? dueDate.toISOString() : null,
-      id: analysis.id
+      due_date: now.toISOString(),
+      id: analysis.id,
+      completed: true
     });
   };
 
@@ -265,9 +280,21 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
               >
                 Cancel
               </button>
+              {mode === 'create' && (
+                <button
+                  type="button"
+                  onClick={handleLogEntry}
+                  className="w-full sm:w-auto px-4 py-4 text-sm font-medium text-black bg-gray-100 border border-transparent rounded-lg shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                    <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                  </svg>
+                  Log Entry
+                </button>
+              )}
               <button
                 type="button"
-                onClick={handleSave}
+                onClick={() => handleSave(false)}
                 className="w-full sm:w-auto px-4 py-4 text-sm font-medium text-white bg-black border border-transparent rounded-lg shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
               >
                 {mode === 'create' ? 'Add Entry' : 'Save Changes'}

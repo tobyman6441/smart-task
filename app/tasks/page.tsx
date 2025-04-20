@@ -10,10 +10,12 @@ type TaskAnalysis = {
   entry: string;
   name: string;
   type: Database['public']['Enums']['task_type'];
-  category: Database['public']['Enums']['task_category'];
+  category: Database['public']['Enums']['task_category_new'];
   subcategory: Database['public']['Enums']['task_subcategory'] | null;
   who: string;
   id?: string;
+  due_date?: string | null;
+  completed?: boolean;
 };
 
 export default function TasksPage() {
@@ -89,6 +91,8 @@ export default function TasksPage() {
           category: task.category,
           subcategory: task.subcategory,
           who: task.who,
+          due_date: task.due_date,
+          completed: task.completed || false,
           updated_at: new Date().toISOString()
         })
         .eq('id', task.id);
@@ -103,6 +107,8 @@ export default function TasksPage() {
         category: task.category,
         subcategory: task.subcategory,
         who: task.who,
+        due_date: task.due_date,
+        completed: task.completed || false,
         updated_at: new Date().toISOString()
       });
     } catch (error) {

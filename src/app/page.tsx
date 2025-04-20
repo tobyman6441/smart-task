@@ -7,14 +7,20 @@ import { analyzeTask } from '@/services/aiAnalyzer';
 import { supabase } from '@/utils/supabase';
 import { Database } from '@/types/supabase';
 
+type TaskType = Database['public']['Enums']['task_type'];
+type TaskCategory = Database['public']['Enums']['task_category_new'];
+type TaskSubcategory = Database['public']['Enums']['task_subcategory'];
+
 type TaskAnalysis = {
   entry: string;
   name: string;
-  type: Database['public']['Enums']['task_type'];
-  category: Database['public']['Enums']['task_category'];
-  subcategory: Database['public']['Enums']['task_subcategory'] | null;
+  type: TaskType;
+  category: TaskCategory;
+  subcategory: TaskSubcategory | null;
   who: string;
   id?: string;
+  completed?: boolean;
+  due_date?: string | null;
 };
 
 export default function Home() {
@@ -28,7 +34,17 @@ export default function Home() {
       setCurrentAnalysis({ entry, ...analysis });
     } catch (error) {
       console.error('Error analyzing task:', error);
-      alert('Failed to analyze task. Please try again.');
+      // If AI analysis fails, create a default analysis for manual entry
+      setCurrentAnalysis({
+        entry,
+        name: '',
+        type: 'Focus' as TaskType,
+        category: 'Task' as TaskCategory,
+        subcategory: null,
+        who: '',
+        completed: false,
+        due_date: null
+      });
     } finally {
       setIsLoading(false);
     }
@@ -40,6 +56,8 @@ export default function Home() {
       if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
       }
+      
+      const now = new Date().toISOString();
       const { error } = await supabaseClient
         .from('tasks')
         .insert({
@@ -48,7 +66,11 @@ export default function Home() {
           type: task.type,
           category: task.category,
           subcategory: task.subcategory,
-          who: task.who
+          who: task.who,
+          completed: task.completed === true, // Ensure it's a boolean
+          due_date: task.due_date || null,
+          created_at: now,
+          updated_at: now
         });
 
       if (error) throw error;
