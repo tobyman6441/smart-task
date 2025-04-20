@@ -13,7 +13,7 @@ export interface TaskAnalysis {
   due_date: string | null;
 }
 
-export async function analyzeTask(entry: string): Promise<TaskAnalysis> {
+export async function analyzeTask(entry: string, due_date?: string | null): Promise<TaskAnalysis> {
   try {
     // Log the request
     console.log('Sending analysis request for entry:', entry);
@@ -24,7 +24,10 @@ export async function analyzeTask(entry: string): Promise<TaskAnalysis> {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({ entry }),
+      body: JSON.stringify({ 
+        entry,
+        due_date 
+      }),
     });
 
     // Log the response status and headers

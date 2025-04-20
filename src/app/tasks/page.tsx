@@ -70,28 +70,36 @@ export default function TasksPage() {
     if (!task.id) return;
     
     try {
-      console.log('TaskAnalysis received:', task);
+      console.log('TaskAnalysis received:', {
+        ...task,
+        due_date_type: typeof task.due_date,
+        due_date_value: task.due_date
+      });
+      
       const supabaseClient = supabase();
       if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
       }
 
-      // Explicitly construct the updates object with due_date
-      const updates: Partial<Task> = {};
+      // Explicitly construct the updates object
+      const updates: Partial<Task> = {
+        entry: task.entry,
+        name: task.name,
+        type: task.type,
+        category: task.category,
+        subcategory: task.subcategory,
+        who: task.who,
+        completed: task.completed || false,
+        updated_at: new Date().toISOString(),
+        // Explicitly handle due_date - ensure it's either a valid ISO string or null
+        due_date: task.due_date || null
+      };
       
-      // Required fields
-      updates.entry = task.entry;
-      updates.name = task.name;
-      updates.type = task.type;
-      updates.category = task.category;
-      updates.subcategory = task.subcategory;
-      updates.who = task.who;
-      updates.updated_at = new Date().toISOString();
-      
-      // Explicitly handle due_date
-      updates.due_date = task.due_date;  // Don't use || null here, let it be undefined if not set
-      
-      console.log('Updates being sent to database:', updates);
+      console.log('Updates being sent to database:', {
+        ...updates,
+        due_date_type: typeof updates.due_date,
+        due_date_value: updates.due_date
+      });
 
       const { data, error } = await supabaseClient
         .from('tasks')

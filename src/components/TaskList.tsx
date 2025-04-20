@@ -197,9 +197,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
         type: taskType,
         category: taskCategory,
         subcategory: taskSubcategory,
-        who: task.who === null ? '' : task.who,
-        completed: task.completed === null ? undefined : task.completed,
-        due_date: task.due_date === null ? undefined : task.due_date
+        who: task.who || '',
+        completed: task.completed || false,
+        due_date: task.due_date
       };
       onEditTask(analysis);
       // Scroll the task into view with smooth behavior
@@ -659,7 +659,11 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                   </div>
                   <div className="col-span-1">
                     <span className="text-sm text-gray-500">
-                      {task.due_date ? new Date(task.due_date).toLocaleDateString() : ''}
+                      {task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric'
+                      }) : ''}
                     </span>
                   </div>
                   <div className="col-span-2">
@@ -763,6 +767,15 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                       {task.who}
                     </span>
                   )}
+                  {task.due_date && (
+                    <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                      Due: {task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric'
+                      }) : ''}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -799,9 +812,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                 type: taskType,
                 category: taskCategory,
                 subcategory: taskSubcategory,
-                who: task.who === null ? '' : task.who,
-                completed: task.completed === null ? undefined : task.completed,
-                due_date: task.due_date === null ? undefined : task.due_date
+                who: task.who || '',
+                completed: task.completed || false,
+                due_date: task.due_date
               };
 
               return (

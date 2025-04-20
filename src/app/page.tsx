@@ -20,7 +20,7 @@ type TaskAnalysis = {
   who: string;
   id?: string;
   completed?: boolean;
-  due_date?: string | null;
+  due_date: string | null;
 };
 
 export default function Home() {
@@ -31,7 +31,11 @@ export default function Home() {
     setIsLoading(true);
     try {
       const analysis = await analyzeTask(entry);
-      setCurrentAnalysis({ entry, ...analysis });
+      setCurrentAnalysis({ 
+        entry, 
+        ...analysis,
+        due_date: analysis.due_date || null 
+      });
     } catch (error) {
       console.error('Error analyzing task:', error);
       // If AI analysis fails, create a default analysis for manual entry
@@ -52,26 +56,47 @@ export default function Home() {
 
   const handleSaveTask = async (task: TaskAnalysis) => {
     try {
+      console.log('handleSaveTask - Received task:', {
+        ...task,
+        due_date_exists: 'due_date' in task,
+        due_date_type: typeof task.due_date,
+        due_date_value: task.due_date,
+        due_date_null: task.due_date === null,
+        due_date_undefined: task.due_date === undefined
+      });
+
       const supabaseClient = supabase();
       if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
       }
       
       const now = new Date().toISOString();
-      const { error } = await supabaseClient
+      const taskData = {
+        entry: task.entry,
+        name: task.name,
+        type: task.type,
+        category: task.category,
+        subcategory: task.subcategory,
+        who: task.who,
+        completed: task.completed === true,
+        due_date: task.due_date || null,
+        created_at: now,
+        updated_at: now
+      };
+
+      console.log('handleSaveTask - Final data being sent to database:', {
+        ...taskData,
+        due_date_type: typeof taskData.due_date,
+        due_date_value: taskData.due_date,
+        due_date_null: taskData.due_date === null,
+      });
+
+      const { data, error } = await supabaseClient
         .from('tasks')
-        .insert({
-          entry: task.entry,
-          name: task.name,
-          type: task.type,
-          category: task.category,
-          subcategory: task.subcategory,
-          who: task.who,
-          completed: task.completed === true, // Ensure it's a boolean
-          due_date: task.due_date || null,
-          created_at: now,
-          updated_at: now
-        });
+        .insert(taskData)
+        .select();
+
+      console.log('handleSaveTask - Database response:', { data, error });
 
       if (error) throw error;
       

@@ -60,7 +60,7 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
   const [category, setCategory] = useState<TaskCategory>(analysis.category);
   const [subcategory, setSubcategory] = useState<TaskSubcategory | null>(analysis.subcategory);
   const [who, setWho] = useState(analysis.who || '');
-  const [dueDate, setDueDate] = useState<Date | null>(parseDateSafely(analysis.due_date));
+  const [dueDate, setDueDate] = useState<Date | null>(analysis.due_date ? new Date(analysis.due_date) : null);
   const [completed, setCompleted] = useState(analysis.completed || false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -71,9 +71,26 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
     setCategory(analysis.category);
     setSubcategory(analysis.subcategory);
     setWho(analysis.who || '');
-    setDueDate(parseDateSafely(analysis.due_date));
+    const parsed = parseDateSafely(analysis.due_date);
+    console.log('useEffect dueDate update:', {
+      input: analysis.due_date,
+      parsed,
+      isDate: parsed instanceof Date,
+      value: parsed ? parsed.toISOString() : null
+    });
+    setDueDate(parsed);
     setCompleted(analysis.completed || false);
   }, [analysis]);
+
+  const handleDateChange = (date: Date | null) => {
+    console.log('handleDateChange:', {
+      date,
+      isDate: date instanceof Date,
+      type: typeof date,
+      value: date ? date.toISOString() : null
+    });
+    setDueDate(date);
+  };
 
   const handleSave = (completed: boolean = false) => {
     // Create the task object with explicit due_date handling
@@ -84,17 +101,19 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
       category,
       subcategory,
       who,
-      // Explicitly convert Date to ISO string when present
-      due_date: dueDate instanceof Date ? dueDate.toISOString() : null,
+      // Explicitly convert Date to ISO string when present, otherwise null
+      due_date: dueDate ? dueDate.toISOString() : null,
       id: analysis.id,
       completed: completed || analysis.completed || false
     };
 
-    console.log('TaskPreview saving task:', {
-      ...taskToSave,
-      due_date_type: dueDate ? typeof dueDate : 'null',
-      due_date_instanceof_date: dueDate instanceof Date,
-      due_date_raw: dueDate
+    console.log('TaskPreview handleSave:', {
+      dueDate,
+      isDate: dueDate instanceof Date,
+      type: typeof dueDate,
+      raw_value: dueDate,
+      iso_value: dueDate ? dueDate.toISOString() : null,
+      final_due_date: taskToSave.due_date
     });
 
     onSave(taskToSave);
@@ -103,7 +122,7 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
   const handleLogEntry = () => {
     const now = new Date();
     setDueDate(now);
-    onSave({
+    const taskToSave: TaskAnalysis = {
       entry: analysis.entry,
       name,
       type,
@@ -113,7 +132,17 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
       due_date: now.toISOString(),
       id: analysis.id,
       completed: true
+    };
+
+    console.log('TaskPreview logging entry:', {
+      ...taskToSave,
+      due_date_type: typeof now,
+      due_date_instanceof_date: now instanceof Date,
+      due_date_raw: now,
+      due_date_final: taskToSave.due_date
     });
+
+    onSave(taskToSave);
   };
 
   const handleDelete = () => {
@@ -152,51 +181,17 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
 
             <div>
               <label className={labelClasses}>Due Date</label>
-              <div className="relative">
+              <div className="w-full relative">
                 <DatePicker
                   selected={dueDate}
-                  onChange={(date) => setDueDate(date)}
-                  showTimeSelect
-                  timeFormat="h:mm aa"
-                  timeIntervals={15}
-                  dateFormat="MMMM d, yyyy h:mm aa"
-                  placeholderText="Set a due date (optional)"
+                  onChange={handleDateChange}
+                  dateFormat="MMMM d, yyyy"
+                  className={inputClasses}
+                  placeholderText="Select due date (optional)"
                   isClearable
-                  className={`${inputClasses} pl-10`}
-                  calendarClassName="!bg-white !border !border-gray-200 !rounded-lg !shadow-lg !font-sans"
                   wrapperClassName="w-full"
-                  popperClassName="react-datepicker-popper"
-                  customInput={
-                    <input className={`${inputClasses} pl-10`} />
-                  }
                 />
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
-                  />
-                </svg>
               </div>
-              {mode === 'create' && (
-                <p className="mt-1.5 text-sm text-gray-500">
-                  {dueDate ? (
-                    <>
-                      Due: {dueDate.toLocaleDateString()} at{' '}
-                      {dueDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </>
-                  ) : (
-                    'Optional: Set a deadline for this entry'
-                  )}
-                </p>
-              )}
             </div>
 
             <div>

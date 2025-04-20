@@ -19,6 +19,8 @@ type TaskAnalysis = {
   subcategory: TaskSubcategory | null;
   who: string;
   id?: string;
+  due_date: string | null;
+  completed?: boolean;
 };
 
 export default function Home() {
@@ -29,7 +31,11 @@ export default function Home() {
     setIsLoading(true);
     try {
       const analysis = await analyzeTask(entry);
-      setCurrentAnalysis({ entry, ...analysis });
+      setCurrentAnalysis({ 
+        entry, 
+        ...analysis,
+        due_date: analysis.due_date || null 
+      });
     } catch (error) {
       console.error('Error analyzing task:', error);
       // If AI analysis fails, create a default analysis for manual entry
@@ -40,6 +46,8 @@ export default function Home() {
         category: 'Task' as TaskCategory,
         subcategory: null,
         who: '',
+        due_date: null,
+        completed: false
       });
     } finally {
       setIsLoading(false);
@@ -48,10 +56,14 @@ export default function Home() {
 
   const handleSaveTask = async (task: TaskAnalysis) => {
     try {
+      console.log('Saving task with due date:', task.due_date);
+      
       const supabaseClient = supabase();
       if (!supabaseClient) {
         throw new Error('Supabase client not initialized');
       }
+      
+      const now = new Date().toISOString();
       const { error } = await supabaseClient
         .from('tasks')
         .insert({
@@ -60,7 +72,11 @@ export default function Home() {
           type: task.type,
           category: task.category,
           subcategory: task.subcategory,
-          who: task.who
+          who: task.who,
+          due_date: task.due_date || null,
+          completed: task.completed || false,
+          created_at: now,
+          updated_at: now
         });
 
       if (error) throw error;

@@ -15,5 +15,5 @@ export interface TaskAnalysis {
   who: string;
   id?: string;
   completed?: boolean;
-  due_date?: string | null;
+  due_date: string | null;
 } 

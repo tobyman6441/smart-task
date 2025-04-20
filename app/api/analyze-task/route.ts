@@ -49,11 +49,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const { entry } = await request.json();
+    const { entry, due_date } = await request.json();
 
     if (!entry) {
       return new NextResponse(
         JSON.stringify({ error: 'Entry text is required' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    // Validate due_date if provided
+    if (due_date && !isValidISODate(due_date)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid due_date format. Must be ISO date string.' }),
         {
           status: 400,
           headers: {
@@ -87,10 +100,17 @@ export async function POST(request: Request) {
           - The category (must be exactly one of: ${VALID_CATEGORIES.join(', ')})
           - The subcategory if applicable (must be exactly one of: ${VALID_SUBCATEGORIES.join(', ')})
           - Who it involves (if mentioned)
-          - Any due dates mentioned (in ISO format)
+          - Any due dates mentioned (MUST be in ISO format, e.g. "2024-03-14T15:30:00.000Z")
+          
+          For due dates:
+          - If a specific date/time is mentioned, convert it to ISO format
+          - If only a date is mentioned (no time), use 12:00 PM (noon) in the user's timezone
+          - If no date is mentioned, return null
+          - Always validate the date format before returning
           
           Return the analysis as a JSON object with these fields: name, type, category, subcategory, who, due_date.
-          The type, category, and subcategory values must match exactly as provided above.`
+          The type, category, and subcategory values must match exactly as provided above.
+          The due_date must be either null or a valid ISO date string.`
         },
         {
           role: "user",
