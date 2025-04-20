@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -94,122 +94,8 @@ export default function DataPage() {
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (allTasks.length > 0) {
-      updateSubcategoryChart(selectedCategory);
-    }
-  }, [selectedCategory, allTasks]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (allTasks.length > 0) {
-      updateTasksCompletedChart(selectedTimelineCategory);
-    }
-  }, [selectedTimelineCategory, allTasks]);
-
-  const updateSubcategoryChart = (category: string) => {
-    const filteredTasks = allTasks.filter(task => task.category === category);
-    const totalCategoryTasks = filteredTasks.length;
-    
-    // Process data for subcategory distribution
-    const subcategories = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
-      const subcategory = task.subcategory || 'None';
-      acc[subcategory] = (acc[subcategory] || 0) + 1;
-      return acc;
-    }, {});
-    
-    // Sort subcategories by count (descending)
-    const sortedSubcategories: Array<[string, number]> = Object.entries(subcategories)
-      .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
-      .map(([subcategory, count]) => [subcategory, count as number]);
-    
-    // Calculate percentages and store full data
-    const sortedWithPercentages: Array<[string, number, number]> = sortedSubcategories.map(([subcategory, count]) => {
-      const percentage = totalCategoryTasks > 0 ? Math.round((count / totalCategoryTasks) * 100) : 0;
-      return [subcategory, count, percentage];
-    });
-    
-    // Store sorted data for the table
-    setSortedSubcategoryData(sortedWithPercentages);
-    
-    const sortedSubcategoriesObj = sortedSubcategories.reduce((acc: Record<string, number>, [subcategory, count]) => {
-      acc[subcategory] = count;
-      return acc;
-    }, {});
-    
-    setSubcategoryDistribution({
-      labels: Object.keys(sortedSubcategoriesObj),
-      datasets: [
-        {
-          data: Object.values(sortedSubcategoriesObj),
-          backgroundColor: [
-            'rgb(0, 0, 0)',
-            'rgb(50, 50, 50)',
-            'rgb(100, 100, 100)',
-            'rgb(150, 150, 150)',
-            'rgb(200, 200, 200)',
-          ],
-        },
-      ],
-    });
-  };
-
-  const updateTasksCompletedChart = (category: string) => {
-    // Filter completed tasks by the selected category
-    const filteredCompletedTasks = allTasks.filter(task => 
-      task.completed && (category === 'All' || task.category === category)
-    );
-    
-    // Get all unique subcategories from the filtered tasks
-    const allSubcategories = Array.from(new Set(filteredCompletedTasks.map(task => task.subcategory || 'None')));
-    
-    // Group tasks by date and subcategory
-    const tasksByDateAndSubcategory: Record<string, Record<string, number>> = {};
-    
-    filteredCompletedTasks.forEach(task => {
-      const date = new Date(task.updated_at).toLocaleDateString();
-      const subcategory = task.subcategory || 'None';
-      
-      if (!tasksByDateAndSubcategory[date]) {
-        tasksByDateAndSubcategory[date] = {};
-      }
-      
-      tasksByDateAndSubcategory[date][subcategory] = (tasksByDateAndSubcategory[date][subcategory] || 0) + 1;
-    });
-    
-    // Sort dates chronologically
-    const sortedDates = Object.keys(tasksByDateAndSubcategory).sort((a, b) => {
-      return new Date(a).getTime() - new Date(b).getTime();
-    });
-    
-    // Create datasets for each subcategory
-    const subcategoryDatasets = allSubcategories.map((subcategory, index) => {
-      // Generate a grayscale color based on index
-      const grayShade = Math.max(0, Math.min(200, index * 40));
-      const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
-      
-      return {
-        label: subcategory,
-        data: sortedDates.map(date => 
-          tasksByDateAndSubcategory[date][subcategory] || 0
-        ),
-        backgroundColor: color,
-      };
-    });
-    
-    setTasksCompletedOverTime({
-      labels: sortedDates,
-      datasets: subcategoryDatasets,
-    });
-  };
-
-  const fetchData = async () => {
+  // Define fetchData and other functions before useEffect hooks using useCallback
+  const fetchData = useCallback(async () => {
     try {
       const supabase = getSupabaseClient();
       if (!supabase) {
@@ -348,9 +234,123 @@ export default function DataPage() {
       // Initialize tasks completed chart with default category (Task)
       updateTasksCompletedChart(selectedTimelineCategory);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      setError('An error occurred while fetching data');
+      console.error(error);
     }
-  };
+  }, []);
+
+  const updateSubcategoryChart = useCallback((category: string) => {
+    const filteredTasks = allTasks.filter(task => task.category === category);
+    const totalCategoryTasks = filteredTasks.length;
+    
+    // Process data for subcategory distribution
+    const subcategories = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
+      const subcategory = task.subcategory || 'None';
+      acc[subcategory] = (acc[subcategory] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Sort subcategories by count (descending)
+    const sortedSubcategories: Array<[string, number]> = Object.entries(subcategories)
+      .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+      .map(([subcategory, count]) => [subcategory, count as number]);
+    
+    // Calculate percentages and store full data
+    const sortedWithPercentages: Array<[string, number, number]> = sortedSubcategories.map(([subcategory, count]) => {
+      const percentage = totalCategoryTasks > 0 ? Math.round((count / totalCategoryTasks) * 100) : 0;
+      return [subcategory, count, percentage];
+    });
+    
+    // Store sorted data for the table
+    setSortedSubcategoryData(sortedWithPercentages);
+    
+    const sortedSubcategoriesObj = sortedSubcategories.reduce((acc: Record<string, number>, [subcategory, count]) => {
+      acc[subcategory] = count;
+      return acc;
+    }, {});
+    
+    setSubcategoryDistribution({
+      labels: Object.keys(sortedSubcategoriesObj),
+      datasets: [
+        {
+          data: Object.values(sortedSubcategoriesObj),
+          backgroundColor: [
+            'rgb(0, 0, 0)',
+            'rgb(50, 50, 50)',
+            'rgb(100, 100, 100)',
+            'rgb(150, 150, 150)',
+            'rgb(200, 200, 200)',
+          ],
+        },
+      ],
+    });
+  }, [allTasks, setSubcategoryDistribution, setSortedSubcategoryData]);
+
+  const updateTasksCompletedChart = useCallback((category: string) => {
+    // Filter completed tasks by the selected category
+    const filteredCompletedTasks = allTasks.filter(task => 
+      task.completed && (category === 'All' || task.category === category)
+    );
+    
+    // Get all unique subcategories from the filtered tasks
+    const allSubcategories = Array.from(new Set(filteredCompletedTasks.map(task => task.subcategory || 'None')));
+    
+    // Group tasks by date and subcategory
+    const tasksByDateAndSubcategory: Record<string, Record<string, number>> = {};
+    
+    filteredCompletedTasks.forEach(task => {
+      const date = new Date(task.updated_at).toLocaleDateString();
+      const subcategory = task.subcategory || 'None';
+      
+      if (!tasksByDateAndSubcategory[date]) {
+        tasksByDateAndSubcategory[date] = {};
+      }
+      
+      tasksByDateAndSubcategory[date][subcategory] = (tasksByDateAndSubcategory[date][subcategory] || 0) + 1;
+    });
+    
+    // Sort dates chronologically
+    const sortedDates = Object.keys(tasksByDateAndSubcategory).sort((a, b) => {
+      return new Date(a).getTime() - new Date(b).getTime();
+    });
+    
+    // Create datasets for each subcategory
+    const subcategoryDatasets = allSubcategories.map((subcategory, index) => {
+      // Generate a grayscale color based on index
+      const grayShade = Math.max(0, Math.min(200, index * 40));
+      const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
+      
+      return {
+        label: subcategory,
+        data: sortedDates.map(date => 
+          tasksByDateAndSubcategory[date][subcategory] || 0
+        ),
+        backgroundColor: color,
+      };
+    });
+    
+    setTasksCompletedOverTime({
+      labels: sortedDates,
+      datasets: subcategoryDatasets,
+    });
+  }, [allTasks, setTasksCompletedOverTime]);
+
+  // Now the useEffects can reference the functions properly
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (allTasks.length > 0) {
+      updateSubcategoryChart(selectedCategory);
+    }
+  }, [selectedCategory, allTasks, updateSubcategoryChart]);
+
+  useEffect(() => {
+    if (allTasks.length > 0) {
+      updateTasksCompletedChart(selectedTimelineCategory);
+    }
+  }, [selectedTimelineCategory, allTasks, updateTasksCompletedChart]);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCategory(e.target.value);
@@ -469,7 +469,6 @@ export default function DataPage() {
                         }
                       }
                     },
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     datalabels: {
                       formatter: (value: number) => {
                         const percentage = Math.round((value / totalTasks) * 100);
@@ -480,7 +479,7 @@ export default function DataPage() {
                         weight: 'bold',
                         size: 12
                       }
-                    } as any
+                    }
                   },
                 }}
               />
@@ -546,7 +545,6 @@ export default function DataPage() {
                         }
                       }
                     },
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     datalabels: {
                       formatter: (value: number) => {
                         const totalCategoryTasks = allTasks.filter(t => t.category === selectedCategory).length;
@@ -558,7 +556,7 @@ export default function DataPage() {
                         weight: 'bold',
                         size: 12
                       }
-                    } as any
+                    }
                   },
                 }}
               />
