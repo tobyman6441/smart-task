@@ -94,6 +94,7 @@ export default function DataPage() {
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);
@@ -468,6 +469,7 @@ export default function DataPage() {
                         }
                       }
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     datalabels: {
                       formatter: (value: number) => {
                         const percentage = Math.round((value / totalTasks) * 100);
@@ -544,6 +546,7 @@ export default function DataPage() {
                         }
                       }
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     datalabels: {
                       formatter: (value: number) => {
                         const totalCategoryTasks = allTasks.filter(t => t.category === selectedCategory).length;
