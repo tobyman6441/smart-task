@@ -46,16 +46,30 @@ type Props = {
   onTaskUpdate: (taskId: string, updates: Partial<Task> | null) => void;
 };
 
+// Add type for sortable fields
+type SortableField = keyof Pick<Task, 'name' | 'created_at' | 'due_date' | 'type' | 'category' | 'subcategory' | 'who'>;
+
 export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
+  const [selectedWho, setSelectedWho] = useState<string>('');
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: SortableField;
+    direction: 'ascending' | 'descending';
+  } | null>(null);
   const taskRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Get unique values for filters
+  const uniqueTypes = Array.from(new Set(tasks.map(task => task.type))).filter(Boolean) as TaskType[];
+  const uniqueCategories = Array.from(new Set(tasks.map(task => task.category))).filter(Boolean) as TaskCategory[];
+  const uniqueSubcategories = Array.from(new Set(tasks.map(task => task.subcategory))).filter(Boolean) as TaskSubcategory[];
+  const uniqueWhos = Array.from(new Set(tasks.map(task => task.who))).filter(Boolean);
 
   const handleComplete = async (taskId: string, completed: boolean) => {
     try {
@@ -107,38 +121,87 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
-    // Hide completed tasks unless showCompleted is true
+  const sortTasks = (tasksToSort: Task[]) => {
+    if (!sortConfig) return tasksToSort;
+
+    return [...tasksToSort].sort((a, b) => {
+      if (sortConfig.key === 'created_at' || sortConfig.key === 'due_date') {
+        const aDate = a[sortConfig.key] ? new Date(a[sortConfig.key] as string).getTime() : 0;
+        const bDate = b[sortConfig.key] ? new Date(b[sortConfig.key] as string).getTime() : 0;
+        return sortConfig.direction === 'ascending' ? aDate - bDate : bDate - aDate;
+      }
+
+      const aValue = a[sortConfig.key] || '';
+      const bValue = b[sortConfig.key] || '';
+      
+      if (aValue < bValue) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  const requestSort = (key: SortableField) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const filteredTasks = sortTasks(tasks.filter(task => {
     if (!showCompleted && task.completed === true) {
       return false;
     }
 
-    // Search filter
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = searchQuery === '' || 
       task.name.toLowerCase().includes(searchLower) ||
       task.entry.toLowerCase().includes(searchLower) ||
       (task.who?.toLowerCase() || '').includes(searchLower);
 
-    // Category filters
     const matchesType = !selectedType || task.type === selectedType;
     const matchesCategory = !selectedCategory || task.category === selectedCategory;
     const matchesSubcategory = !selectedSubcategory || task.subcategory === selectedSubcategory;
+    const matchesWho = !selectedWho || task.who === selectedWho;
 
-    return matchesSearch && matchesType && matchesCategory && matchesSubcategory;
-  }).sort((a, b) => {
-    // Sort by created date
-    const aDate = a.created_at ? new Date(a.created_at).getTime() : 0;
-    const bDate = b.created_at ? new Date(b.created_at).getTime() : 0;
-    return bDate - aDate;
-  });
+    return matchesSearch && matchesType && matchesCategory && matchesSubcategory && matchesWho;
+  }));
 
   const handleEditClick = (task: Task) => {
     if (editingTaskId === task.id) {
       setEditingTaskId(null);
     } else {
-      setEditingTaskId(task.id);
-      onEditTask(task);
+      setEditingTaskId(task.id || '');
+      // Ensure we have valid values for required fields
+      const taskType = TASK_TYPES.includes(task.type as TaskType) 
+        ? task.type as TaskType 
+        : TASK_TYPES[0];
+      
+      // Always provide a valid category, defaulting to 'Task' or the first available category
+      const taskCategory = task.category && TASK_CATEGORIES.includes(task.category as TaskCategory)
+        ? task.category as TaskCategory
+        : (TASK_CATEGORIES.includes('Task') ? 'Task' as TaskCategory : TASK_CATEGORIES[0]);
+
+      const taskSubcategory = task.subcategory && TASK_SUBCATEGORIES.includes(task.subcategory as TaskSubcategory)
+        ? task.subcategory as TaskSubcategory
+        : null;
+
+      const analysis: TaskAnalysis = {
+        id: task.id || '',
+        entry: task.entry,
+        name: task.name,
+        type: taskType,
+        category: taskCategory,
+        subcategory: taskSubcategory,
+        who: task.who === null ? '' : task.who,
+        completed: task.completed === null ? undefined : task.completed,
+        due_date: task.due_date === null ? undefined : task.due_date
+      };
+      onEditTask(analysis);
       // Scroll the task into view with smooth behavior
       setTimeout(() => {
         taskRefs.current[task.id]?.scrollIntoView({
@@ -150,6 +213,116 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   };
 
   const activeFilterCount = [selectedType, selectedCategory, selectedSubcategory].filter(Boolean).length;
+
+  // Add FilterButton component
+  const FilterButton = ({ 
+    column, 
+    options, 
+    value, 
+    onChange 
+  }: { 
+    column: SortableField, 
+    options: (string | TaskType | TaskCategory | TaskSubcategory)[], 
+    value: string, 
+    onChange: (value: string) => void 
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="inline-flex items-center hover:text-gray-900 group -mt-0.5"
+          title={`Filter by ${column}`}
+        >
+          <div className="flex items-center">
+            {value && (
+              <span className="text-xs bg-black text-white rounded-full px-2 py-0.5 mr-1">1</span>
+            )}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`w-4 h-4 translate-y-[1px] ${value ? 'text-black' : 'text-gray-400'}`}
+            >
+              <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </button>
+        {isOpen && (
+          <div className="absolute z-10 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+            <div className="py-1">
+              <button
+                onClick={() => {
+                  onChange('');
+                  setIsOpen(false);
+                }}
+                className={`block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${!value ? 'bg-gray-50' : ''}`}
+              >
+                All
+              </button>
+              {options.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => {
+                    onChange(option.toString());
+                    setIsOpen(false);
+                  }}
+                  className={`block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${value === option.toString() ? 'bg-gray-50' : ''}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Update column headers to include both sort and filter
+  const ColumnHeader = ({ 
+    column,
+    options,
+    filterValue,
+    onFilterChange
+  }: { 
+    column: SortableField,
+    options?: (string | TaskType | TaskCategory | TaskSubcategory)[],
+    filterValue?: string,
+    onFilterChange?: (value: string) => void
+  }) => {
+    const isSorted = sortConfig?.key === column;
+    
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => requestSort(column)}
+          className="inline-flex items-center gap-1 hover:text-gray-900"
+        >
+          <span>{column === 'created_at' ? 'Created' : column === 'due_date' ? 'Due Date' : column}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className={`w-4 h-4 transition-transform ${
+              isSorted && sortConfig?.direction === 'descending' ? 'rotate-180' : ''
+            }`}
+          >
+            <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clipRule="evenodd" />
+          </svg>
+        </button>
+        {options && onFilterChange && (
+          <FilterButton
+            column={column}
+            options={options}
+            value={filterValue || ''}
+            onChange={onFilterChange}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="w-full px-2 pt-4">
@@ -255,103 +428,11 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
               <div className="flex items-center">
                 <span className="text-sm font-medium text-gray-500">Filter by:</span>
               </div>
-              <div className="grid grid-cols-1 gap-3 w-full">
-                <div className="relative">
-                  <select
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full p-3 text-sm border rounded-lg bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent appearance-none pr-10"
-                  >
-                    <option value="">All Types</option>
-                    {TASK_TYPES.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                    <svg className="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
-                    </svg>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full p-3 text-sm border rounded-lg bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent appearance-none pr-10"
-                  >
-                    <option value="">All Categories</option>
-                    {TASK_CATEGORIES.map((category) => (
-                      <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                    <svg className="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
-                    </svg>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <select
-                    value={selectedSubcategory}
-                    onChange={(e) => setSelectedSubcategory(e.target.value)}
-                    className="w-full p-3 text-sm border rounded-lg bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent appearance-none pr-10"
-                  >
-                    <option value="">All Subcategories</option>
-                    {TASK_SUBCATEGORIES.map((subcategory) => (
-                      <option key={subcategory} value={subcategory}>{subcategory}</option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                    <svg className="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Task list section */}
-      <div className="w-full max-w-none">
-        {/* Desktop spreadsheet view */}
-        <div className="hidden md:block w-full">
-          <div className="w-full divide-y divide-gray-200">
-            <div className="bg-gray-50">
-              <div className="grid grid-cols-12 gap-2 px-4 py-4 text-sm font-medium text-gray-500">
-                <div className="col-span-1">
-                  <button
-                    onClick={() => setShowCompleted(!showCompleted)}
-                    className={`rounded-full p-1.5 transition-colors duration-200 ${
-                      showCompleted ? 'bg-black text-white hover:bg-gray-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                    }`}
-                    title={showCompleted ? 'Hide completed tasks' : 'Show completed tasks'}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      {showCompleted ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                      ) : (
-                        <>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                        </>
-                      )}
-                      {showCompleted && (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      )}
-                    </svg>
-                  </button>
-                </div>
-                <div className="col-span-3">Name</div>
+              <div className="grid grid-cols-12 gap-2 px-4 py-2 text-sm font-medium text-gray-500">
+                <div className="col-span-1"></div>
+                <div className="col-span-2">Name</div>
+                <div className="col-span-1">Created</div>
+                <div className="col-span-1">Due Date</div>
                 <div className="col-span-2">
                   <div className="flex items-center gap-1">
                     <span>Type</span>
@@ -431,14 +512,97 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                 <div className="col-span-1"></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Task list section */}
+      <div className="w-full max-w-none">
+        {/* Desktop spreadsheet view */}
+        <div className="hidden md:block w-full">
+          <div className="w-full divide-y divide-gray-200">
+            <div className="bg-gray-50">
+              <div className="grid grid-cols-12 gap-2 px-4 py-4 text-sm font-medium text-gray-500">
+                <div className="col-span-1 flex items-center gap-1">
+                  <button
+                    onClick={() => setShowCompleted(!showCompleted)}
+                    className={`rounded-full p-1.5 transition-colors duration-200 ${
+                      showCompleted ? 'bg-black text-white hover:bg-gray-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    }`}
+                    title={showCompleted ? 'Hide completed tasks' : 'Show completed tasks'}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      {showCompleted ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      ) : (
+                        <>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                        </>
+                      )}
+                      {showCompleted && (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      )}
+                    </svg>
+                  </button>
+                </div>
+                <div className="col-span-2 pl-8">
+                  <ColumnHeader column="name" />
+                </div>
+                <div className="col-span-1">
+                  <ColumnHeader column="created_at" />
+                </div>
+                <div className="col-span-1">
+                  <ColumnHeader column="due_date" />
+                </div>
+                <div className="col-span-2">
+                  <ColumnHeader 
+                    column="type"
+                    options={uniqueTypes}
+                    filterValue={selectedType}
+                    onFilterChange={setSelectedType}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <ColumnHeader 
+                    column="category"
+                    options={uniqueCategories}
+                    filterValue={selectedCategory}
+                    onFilterChange={setSelectedCategory}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <ColumnHeader 
+                    column="subcategory"
+                    options={uniqueSubcategories}
+                    filterValue={selectedSubcategory}
+                    onFilterChange={setSelectedSubcategory}
+                  />
+                </div>
+                <div className="col-span-1">
+                  <ColumnHeader 
+                    column="who"
+                    options={uniqueWhos}
+                    filterValue={selectedWho}
+                    onFilterChange={setSelectedWho}
+                  />
+                </div>
+              </div>
+            </div>
             <div className="divide-y divide-gray-200 bg-white">
               {filteredTasks.map((task) => (
                 <div
                   key={task.id}
                   ref={el => { taskRefs.current[task.id] = el }}
-                  className={`grid grid-cols-12 gap-2 px-4 py-3 text-sm ${task.completed ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50'}`}
+                  className={`grid grid-cols-12 gap-2 px-4 py-3 text-sm items-center ${task.completed ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50'}`}
                 >
-                  <div className="col-span-1 flex items-center">
+                  <div className="col-span-1 flex items-center gap-3">
                     <div className="relative flex items-center">
                       <input
                         type="checkbox"
@@ -463,59 +627,64 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                         />
                       </svg>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditClick(task)}
+                        className="rounded-full p-1 hover:bg-gray-100"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                          <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                          <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setDeleteTaskId(task.id)}
+                        className="rounded-full p-1 hover:bg-gray-100 text-red-600"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                          <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  <div className="col-span-3 flex items-center">
+                  <div className="col-span-2 pl-8">
                     <span className={task.completed ? 'line-through text-gray-400' : 'text-gray-900'}>
                       {task.name}
                     </span>
-                    {task.due_date && (
-                      <span className="ml-2 text-xs text-gray-500">
-                        Due: {new Date(task.due_date).toLocaleDateString()} {new Date(task.due_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    )}
                   </div>
-                  <div className="col-span-2 flex items-center">
+                  <div className="col-span-1">
+                    <span className="text-sm text-gray-500">
+                      {task.created_at ? new Date(task.created_at).toLocaleDateString() : ''}
+                    </span>
+                  </div>
+                  <div className="col-span-1">
+                    <span className="text-sm text-gray-500">
+                      {task.due_date ? new Date(task.due_date).toLocaleDateString() : ''}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
                     <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                       {task.type}
                     </span>
                   </div>
-                  <div className="col-span-2 flex items-center">
+                  <div className="col-span-2">
                     <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                       {task.category}
                     </span>
                   </div>
-                  <div className="col-span-2 flex items-center">
+                  <div className="col-span-2">
                     {task.subcategory && (
                       <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                         {task.subcategory}
                       </span>
                     )}
                   </div>
-                  <div className="col-span-1 flex items-center">
+                  <div className="col-span-1">
                     {task.who && (
                       <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                         {task.who}
                       </span>
                     )}
-                  </div>
-                  <div className="col-span-1 flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => handleEditClick(task)}
-                      className="rounded-full p-1 hover:bg-gray-100"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                        <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
-                        <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => setDeleteTaskId(task.id)}
-                      className="rounded-full p-1 hover:bg-gray-100 text-red-600"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
-                      </svg>
-                    </button>
                   </div>
                 </div>
               ))}
@@ -630,9 +799,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                 type: taskType,
                 category: taskCategory,
                 subcategory: taskSubcategory,
-                who: task.who || '',
-                due_date: task.due_date,
-                completed: task.completed || false
+                who: task.who === null ? '' : task.who,
+                completed: task.completed === null ? undefined : task.completed,
+                due_date: task.due_date === null ? undefined : task.due_date
               };
 
               return (

@@ -15,6 +15,7 @@ import {
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase';
 
 // Register ChartJS components
 ChartJS.register(
@@ -55,9 +56,9 @@ interface ChartData {
 
 interface Task {
   created_at: string;
-  type: string;
+  type: Database['public']['Enums']['task_type'];
   completed: boolean;
-  category: string;
+  category: Database['public']['Enums']['task_category_new'] | null;
 }
 
 export default function DataPage() {
