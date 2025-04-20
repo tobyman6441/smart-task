@@ -105,7 +105,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto w-full">
       <div className="flex items-center gap-4 p-4 bg-gray-50 border-b">
         <input 
           type="text" 
@@ -113,8 +113,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
           className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm"
         />
       </div>
-      <div className="min-w-full">
-        <div className="grid grid-cols-[auto,2fr,1fr,1fr,1fr,1fr,1fr,1fr,1fr,auto] gap-4 px-4 py-3 bg-gray-50 border-b">
+      <div className="w-full">
+        {/* Table header - Hidden on mobile, visible on larger screens */}
+        <div className="hidden md:grid md:grid-cols-[auto,2fr,1fr,1fr,1fr,1fr,1fr,1fr,1fr,auto] md:gap-2 px-4 py-3 bg-gray-50 border-b">
           <div>
             <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black" />
           </div>
@@ -156,8 +157,15 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
             }
 
             return (
-              <div key={task.id} className={`grid grid-cols-[auto,2fr,1fr,1fr,1fr,1fr,1fr,1fr,1fr,auto] gap-4 px-4 py-3 items-center ${task.completed ? 'bg-gray-50' : ''}`}>
-                <div>
+              <div key={task.id} className={`
+                ${task.completed ? 'bg-gray-50' : ''}
+                relative
+                min-h-[4rem]
+                border-b border-gray-200
+                md:grid md:grid-cols-[auto,2fr,1fr,1fr,1fr,1fr,1fr,1fr,1fr,auto] md:gap-2 md:py-3 md:items-center
+              `}>
+                {/* Checkbox */}
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 md:static md:translate-y-0 md:pl-4">
                   <input
                     type="checkbox"
                     checked={task.completed || false}
@@ -165,24 +173,30 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
                   />
                 </div>
-                <div>
-                  <div className="text-sm text-gray-900">{task.name}</div>
-                  <div className="text-sm text-gray-500">{task.entry}</div>
+
+                {/* Task Name and Entry - Mobile: Full width with proper padding */}
+                <div className="pl-10 pr-10 py-3 md:pl-0 md:pr-0 md:py-0">
+                  <div className="text-sm text-gray-900 font-medium truncate">{task.name}</div>
+                  <div className="text-xs text-gray-500 truncate">{task.entry}</div>
                 </div>
-                <div className="text-sm text-gray-500">
+
+                {/* Desktop layout - Each field in its own column - Hidden on mobile */}
+                <div className="hidden md:block text-sm text-gray-500 truncate">
                   {formatDate(task.due_date)}
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="hidden md:block text-sm text-gray-500 truncate">
                   {formatDate(task.created_at)}
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="hidden md:block text-sm text-gray-500 truncate">
                   {task.completed ? formatDate(task.updated_at) : ''}
                 </div>
-                <div className="text-sm text-gray-500">{task.type}</div>
-                <div className="text-sm text-gray-500">{task.category}</div>
-                <div className="text-sm text-gray-500">{task.subcategory}</div>
-                <div className="text-sm text-gray-500">{task.who}</div>
-                <div className="flex justify-end gap-2">
+                <div className="hidden md:block text-sm text-gray-500 truncate">{task.type}</div>
+                <div className="hidden md:block text-sm text-gray-500 truncate">{task.category}</div>
+                <div className="hidden md:block text-sm text-gray-500 truncate">{task.subcategory}</div>
+                <div className="hidden md:block text-sm text-gray-500 truncate">{task.who}</div>
+
+                {/* Action buttons - Mobile: Right centered, Desktop: In column */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3 md:static md:translate-y-0 md:justify-end md:pr-4">
                   <button
                     onClick={() => handleEdit(task)}
                     className="text-gray-600 hover:text-gray-900"
