@@ -13,7 +13,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie } from 'react-chartjs-2';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -98,12 +98,14 @@ export default function DataPage() {
     fetchData();
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (allTasks.length > 0) {
       updateSubcategoryChart(selectedCategory);
     }
   }, [selectedCategory, allTasks]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (allTasks.length > 0) {
       updateTasksCompletedChart(selectedTimelineCategory);
@@ -466,7 +468,6 @@ export default function DataPage() {
                         }
                       }
                     },
-                    // @ts-ignore - plugin is registered but TypeScript doesn't know the type
                     datalabels: {
                       formatter: (value: number) => {
                         const percentage = Math.round((value / totalTasks) * 100);
@@ -477,7 +478,7 @@ export default function DataPage() {
                         weight: 'bold',
                         size: 12
                       }
-                    }
+                    } as any
                   },
                 }}
               />
@@ -543,7 +544,6 @@ export default function DataPage() {
                         }
                       }
                     },
-                    // @ts-ignore - plugin is registered but TypeScript doesn't know the type
                     datalabels: {
                       formatter: (value: number) => {
                         const totalCategoryTasks = allTasks.filter(t => t.category === selectedCategory).length;
@@ -555,7 +555,7 @@ export default function DataPage() {
                         weight: 'bold',
                         size: 12
                       }
-                    }
+                    } as any
                   },
                 }}
               />
