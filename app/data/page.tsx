@@ -85,16 +85,10 @@ export default function DataPage() {
     labels: [],
     datasets: [],
   });
-  const [activityByWhoDistribution, setActivityByWhoDistribution] = useState<ChartData>({
-    labels: [],
-    datasets: [],
-  });
   const [error, setError] = useState<string | null>(null);
   const [sortedCategoryData, setSortedCategoryData] = useState<Array<[string, number, number]>>([]);
   const [sortedSubcategoryData, setSortedSubcategoryData] = useState<Array<[string, number, number]>>([]);
-  const [sortedActivityByWhoData, setSortedActivityByWhoData] = useState<Array<[string, number, number, Record<string, number>]>>([]);
   const [totalTasks, setTotalTasks] = useState(0);
-  const [totalActivities, setTotalActivities] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>("Task");
   const [selectedTimelineCategory, setSelectedTimelineCategory] = useState<string>("Task");
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -350,69 +344,6 @@ export default function DataPage() {
       updateSubcategoryChart(selectedCategory);
       // Initialize tasks completed chart with default category (Task)
       updateTasksCompletedChart(selectedTimelineCategory);
-
-      // Process activity distribution by who
-      const activityTypes = ['Family Night', 'Date Night', 'Night Out'];
-      const activitiesByWho: Record<string, {count: number, categories: Record<string, number>}> = {};
-      
-      // Filter tasks to include only the specified activities
-      const activityTasks = tasks.filter(task => {
-        const entry = task.entry?.toLowerCase() || '';
-        return activityTypes.some(type => 
-          entry.includes(type.toLowerCase()) || 
-          (task.name?.toLowerCase() || '').includes(type.toLowerCase())
-        );
-      });
-
-      // Set total activities count
-      const activityCount = activityTasks.length;
-      setTotalActivities(activityCount);
-      
-      // Group by who and track categories
-      activityTasks.forEach(task => {
-        const who = task.who ? task.who.trim() : '';
-        const category = task.category || 'Uncategorized';
-        
-        if (!activitiesByWho[who]) {
-          activitiesByWho[who] = {
-            count: 0,
-            categories: {}
-          };
-        }
-        
-        activitiesByWho[who].count += 1;
-        activitiesByWho[who].categories[category] = (activitiesByWho[who].categories[category] || 0) + 1;
-      });
-      
-      // Sort by count (descending)
-      const sortedActivitiesByWho: Array<[string, number, Record<string, number>]> = Object.entries(activitiesByWho)
-        .sort(([, dataA], [, dataB]) => dataB.count - dataA.count)
-        .map(([who, data]) => [who, data.count, data.categories]);
-      
-      // Calculate percentages and store data
-      const activityWithPercentages: Array<[string, number, number, Record<string, number>]> = sortedActivitiesByWho.map(([who, count, categories]) => {
-        const percentage = activityCount > 0 ? Math.round((count / activityCount) * 100) : 0;
-        return [who, count, percentage, categories];
-      });
-      
-      // Store sorted data for the table
-      setSortedActivityByWhoData(activityWithPercentages);
-      
-      // Create grayscale colors for each who
-      const whoColors = sortedActivitiesByWho.map((_, index) => {
-        const grayShade = Math.max(0, Math.min(200, index * 40));
-        return `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
-      });
-      
-      setActivityByWhoDistribution({
-        labels: sortedActivitiesByWho.map(([who]) => who),
-        datasets: [
-          {
-            data: sortedActivitiesByWho.map(([, count]) => count),
-            backgroundColor: whoColors,
-          },
-        ],
-      });
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -652,84 +583,6 @@ export default function DataPage() {
                 </table>
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-            <h2 className="text-xl font-semibold mb-4 text-black">Social Activities by Person</h2>
-            <div className="h-[300px]">
-              <Pie
-                data={activityByWhoDistribution}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'top' as const,
-                      labels: {
-                        color: 'black'
-                      }
-                    },
-                    tooltip: {
-                      callbacks: {
-                        label: (context) => {
-                          const percentage = Math.round((context.raw as number / totalActivities) * 100);
-                          return `${context.label}: ${context.raw} (${percentage}%)`;
-                        }
-                      }
-                    },
-                    // @ts-ignore - plugin is registered but TypeScript doesn't know the type
-                    datalabels: {
-                      formatter: (value: number) => {
-                        const percentage = totalActivities > 0 ? Math.round((value / totalActivities) * 100) : 0;
-                        return `${percentage}%`;
-                      },
-                      color: 'white',
-                      font: {
-                        weight: 'bold',
-                        size: 12
-                      }
-                    }
-                  },
-                }}
-              />
-            </div>
-            <div className="mt-6">
-              <h3 className="text-lg font-medium mb-2 text-black">Social Activities Distribution by Person</h3>
-              <div className="overflow-auto max-h-[200px]">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-2 text-black font-bold">Person</th>
-                      <th className="px-4 py-2 text-black font-bold">Activities</th>
-                      <th className="px-4 py-2 text-black font-bold">Percentage</th>
-                      <th className="px-4 py-2 text-black font-bold">Categories</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedActivityByWhoData.map(([who, count, percentage, categories], index) => (
-                      <tr key={who} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-4 py-2 text-black">{who}</td>
-                        <td className="px-4 py-2 text-black">{count}</td>
-                        <td className="px-4 py-2 text-black">{percentage}%</td>
-                        <td className="px-4 py-2 text-black">
-                          {Object.entries(categories)
-                            .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
-                            .map(([category, catCount]) => (
-                              <div key={`${who}-${category}`}>{category}: {catCount}</div>
-                            ))
-                          }
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          
-          <div className="md:col-span-2">
-            <h2 className="text-xl font-semibold mb-4 text-black">Additional Charts</h2>
-            <p className="text-gray-500">Future visualizations will appear here.</p>
           </div>
         </div>
       </div>
