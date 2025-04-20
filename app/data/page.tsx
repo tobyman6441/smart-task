@@ -120,12 +120,12 @@ export default function DataPage() {
       });
 
       // Process data for completion rate
-      const todos = tasks.filter((task: Task) => task.type === 'Todo');
-      const completed = todos.filter((task: Task) => task.completed).length;
-      const total = todos.length;
+      const focusTasks = tasks.filter((task: Task) => task.type === 'Focus');
+      const completed = focusTasks.filter((task: Task) => task.completed).length;
+      const total = focusTasks.length;
       
       setCompletionRate({
-        labels: ['Completed Todos', 'Pending Todos'],
+        labels: ['Completed Focus Tasks', 'Pending Focus Tasks'],
         datasets: [
           {
             data: [completed, total - completed],
@@ -192,7 +192,7 @@ export default function DataPage() {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Completion Rate of To-do&apos;s</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">Completion Rate of Focus Tasks</h2>
             <div className="h-[300px]">
               <Pie
                 data={completionRate}

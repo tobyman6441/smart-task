@@ -150,9 +150,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   const activeFilterCount = [selectedType, selectedCategory, selectedSubcategory].filter(Boolean).length;
 
   return (
-    <div className="w-full px-2">
+    <div className="w-full px-2 pt-4">
       {/* Search and filters section */}
-      <div className="relative w-full max-w-none">
+      <div className="relative w-full max-w-none mb-4">
         <input
           type="text"
           value={searchQuery}
@@ -177,7 +177,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
       </div>
 
       {/* Filters button and panel */}
-      <div className="relative w-full max-w-none">
+      <div className="relative w-full max-w-none mb-4 md:hidden">
         <button
           onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
           className="w-full flex items-center justify-between px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
@@ -283,17 +283,89 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
       </div>
 
       {/* Task list section */}
-      <div className="mt-8 w-full max-w-none">
+      <div className="w-full max-w-none">
         {/* Desktop spreadsheet view */}
         <div className="hidden md:block w-full">
           <div className="w-full divide-y divide-gray-200">
             <div className="bg-gray-50">
-              <div className="grid grid-cols-12 gap-2 px-4 py-3 text-sm font-medium text-gray-500">
+              <div className="grid grid-cols-12 gap-2 px-4 py-4 text-sm font-medium text-gray-500">
                 <div className="col-span-1"></div>
                 <div className="col-span-3">Name</div>
-                <div className="col-span-2">Type</div>
-                <div className="col-span-2">Category</div>
-                <div className="col-span-2">Subcategory</div>
+                <div className="col-span-2">
+                  <div className="flex items-center gap-1">
+                    <span>Type</span>
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={selectedType}
+                        onChange={(e) => setSelectedType(e.target.value)}
+                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                      >
+                        <option value="">All</option>
+                        {TASK_TYPES.map((type) => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className={`w-4 h-4 ${selectedType ? 'text-black' : 'text-gray-400'} hover:text-gray-600`}
+                      >
+                        <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <div className="flex items-center gap-1">
+                    <span>Category</span>
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                      >
+                        <option value="">All</option>
+                        {TASK_CATEGORIES.map((category) => (
+                          <option key={category} value={category}>{category}</option>
+                        ))}
+                      </select>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className={`w-4 h-4 ${selectedCategory ? 'text-black' : 'text-gray-400'} hover:text-gray-600`}
+                      >
+                        <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <div className="flex items-center gap-1">
+                    <span>Subcategory</span>
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={selectedSubcategory}
+                        onChange={(e) => setSelectedSubcategory(e.target.value)}
+                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                      >
+                        <option value="">All</option>
+                        {TASK_SUBCATEGORIES.map((subcategory) => (
+                          <option key={subcategory} value={subcategory}>{subcategory}</option>
+                        ))}
+                      </select>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className={`w-4 h-4 ${selectedSubcategory ? 'text-black' : 'text-gray-400'} hover:text-gray-600`}
+                      >
+                        <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
                 <div className="col-span-1">Who</div>
                 <div className="col-span-1"></div>
               </div>
