@@ -428,11 +428,13 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
               <div className="flex items-center">
                 <span className="text-sm font-medium text-gray-500">Filter by:</span>
               </div>
-              <div className="grid grid-cols-12 gap-2 px-4 py-2 text-sm font-medium text-gray-500">
+              <div className="grid grid-cols-21 gap-2 px-4 py-2 text-sm font-medium text-gray-500">
                 <div className="col-span-1"></div>
-                <div className="col-span-2">Name</div>
+                <div className="col-span-6">Name</div>
                 <div className="col-span-1">Created</div>
-                <div className="col-span-1">Due Date</div>
+                <div className="col-span-1"></div>
+                <div className="col-span-2">Due Date</div>
+                <div className="col-span-1"></div>
                 <div className="col-span-2">
                   <div className="flex items-center gap-1">
                     <span>Type</span>
@@ -508,7 +510,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     </div>
                   </div>
                 </div>
-                <div className="col-span-1">Who</div>
+                <div className="col-span-2">Who</div>
                 <div className="col-span-1"></div>
               </div>
             </div>
@@ -522,7 +524,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
         <div className="hidden md:block w-full">
           <div className="w-full divide-y divide-gray-200">
             <div className="bg-gray-50">
-              <div className="grid grid-cols-12 gap-2 px-4 py-4 text-sm font-medium text-gray-500">
+              <div className="grid grid-cols-21 gap-2 px-4 py-4 text-sm font-medium text-gray-500">
                 <div className="col-span-1 flex items-center gap-1">
                   <button
                     onClick={() => setShowCompleted(!showCompleted)}
@@ -552,15 +554,17 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     </svg>
                   </button>
                 </div>
-                <div className="col-span-2 pl-8">
+                <div className="col-span-6 pl-8">
                   <ColumnHeader column="name" />
                 </div>
                 <div className="col-span-1">
                   <ColumnHeader column="created_at" />
                 </div>
-                <div className="col-span-1">
+                <div className="col-span-1"></div>
+                <div className="col-span-2">
                   <ColumnHeader column="due_date" />
                 </div>
+                <div className="col-span-1"></div>
                 <div className="col-span-2">
                   <ColumnHeader 
                     column="type"
@@ -585,7 +589,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     onFilterChange={setSelectedSubcategory}
                   />
                 </div>
-                <div className="col-span-1">
+                <div className="col-span-2">
                   <ColumnHeader 
                     column="who"
                     options={uniqueWhos}
@@ -593,6 +597,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     onFilterChange={setSelectedWho}
                   />
                 </div>
+                <div className="col-span-1"></div>
               </div>
             </div>
             <div className="divide-y divide-gray-200 bg-white">
@@ -600,7 +605,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                 <div
                   key={task.id}
                   ref={el => { taskRefs.current[task.id] = el }}
-                  className={`grid grid-cols-12 gap-2 px-4 py-3 text-sm items-center ${task.completed ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50'}`}
+                  className={`grid grid-cols-21 gap-2 px-4 py-3 text-sm items-center ${task.completed ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50'}`}
                 >
                   <div className="col-span-1 flex items-center gap-3">
                     <div className="relative flex items-center">
@@ -647,7 +652,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                       </button>
                     </div>
                   </div>
-                  <div className="col-span-2 pl-8">
+                  <div className="col-span-6 pl-8">
                     <span className={task.completed ? 'line-through text-gray-400' : 'text-gray-900'}>
                       {task.name}
                     </span>
@@ -657,7 +662,8 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                       {task.created_at ? new Date(task.created_at).toLocaleDateString() : ''}
                     </span>
                   </div>
-                  <div className="col-span-1">
+                  <div className="col-span-1"></div>
+                  <div className="col-span-2">
                     <span className="text-sm text-gray-500">
                       {task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -666,6 +672,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                       }) : ''}
                     </span>
                   </div>
+                  <div className="col-span-1"></div>
                   <div className="col-span-2">
                     <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                       {task.type}
@@ -683,13 +690,14 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                       </span>
                     )}
                   </div>
-                  <div className="col-span-1">
+                  <div className="col-span-2">
                     {task.who && (
                       <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                         {task.who}
                       </span>
                     )}
                   </div>
+                  <div className="col-span-1"></div>
                 </div>
               ))}
             </div>
