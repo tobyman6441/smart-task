@@ -17,7 +17,7 @@ const TASK_CATEGORIES: TaskCategory[] = [
   'Finds',
   'Ideas',
   'Rules / promises',
-  'Todos',
+  'Task',
   'Night out',
   'Date night',
   'Family day'

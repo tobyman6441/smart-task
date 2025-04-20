@@ -18,7 +18,7 @@ const TASK_CATEGORIES: TaskCategory[] = [
   'Finds',
   'Ideas',
   'Rules / promises',
-  'Todos',
+  'Task',
   'Night out',
   'Date night',
   'Family day'
@@ -150,9 +150,9 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   const activeFilterCount = [selectedType, selectedCategory, selectedSubcategory].filter(Boolean).length;
 
   return (
-    <div className="space-y-4">
+    <div className="w-full px-2">
       {/* Search and filters section */}
-      <div className="relative">
+      <div className="relative w-full max-w-none">
         <input
           type="text"
           value={searchQuery}
@@ -177,7 +177,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
       </div>
 
       {/* Filters button and panel */}
-      <div className="relative">
+      <div className="relative w-full max-w-none">
         <button
           onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
           className="w-full flex items-center justify-between px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
@@ -283,10 +283,10 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
       </div>
 
       {/* Task list section */}
-      <div className="mt-8">
+      <div className="mt-8 w-full max-w-none">
         {/* Desktop spreadsheet view */}
-        <div className="hidden md:block">
-          <div className="min-w-full divide-y divide-gray-200">
+        <div className="hidden md:block w-full">
+          <div className="w-full divide-y divide-gray-200">
             <div className="bg-gray-50">
               <div className="grid grid-cols-12 gap-2 px-4 py-3 text-sm font-medium text-gray-500">
                 <div className="col-span-1"></div>

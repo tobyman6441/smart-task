@@ -10,7 +10,7 @@ const VALID_TYPES: TaskType[] = ["Focus", "Follow up", "Save for later"];
 const VALID_CATEGORIES: TaskCategory[] = [
   "My questions", "Questions for me", "My asks", "Asks of me",
   "Recommendations", "Finds", "Ideas", "Rules / promises",
-  "Todos", "Night out", "Date night", "Family day"
+  "Task", "Night out", "Date night", "Family day"
 ];
 const VALID_SUBCATEGORIES: TaskSubcategory[] = [
   "House", "Car", "Boat", "Travel", "Books", "Movies",

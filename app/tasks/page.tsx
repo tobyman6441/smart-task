@@ -125,14 +125,12 @@ export default function TasksPage() {
   };
 
   return (
-    <main className="min-h-screen p-4 sm:p-8 bg-white text-black">
-      <div className="max-w-4xl mx-auto space-y-4 md:pl-4">
+    <main className="min-h-screen bg-white text-black w-full">
         <TaskList 
           tasks={tasks} 
           onEditTask={handleEditTask} 
           onTaskUpdate={handleTaskUpdate}
         />
-      </div>
     </main>
   );
 } 

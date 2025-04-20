@@ -37,7 +37,7 @@ export default function Home() {
         entry,
         name: '',
         type: 'Focus' as TaskType,
-        category: 'Todos' as TaskCategory,
+        category: 'Task' as TaskCategory,
         subcategory: null,
         who: '',
       });

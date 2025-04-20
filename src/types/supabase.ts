@@ -60,7 +60,7 @@ export interface Database {
     }
     Enums: {
       task_type: "Focus" | "Follow up" | "Save for later"
-      task_category: "My questions" | "Questions for me" | "My asks" | "Asks of me" | "Recommendations" | "Finds" | "Ideas" | "Rules / promises" | "Todos" | "Night out" | "Date night" | "Family day"
+      task_category: "My questions" | "Questions for me" | "My asks" | "Asks of me" | "Recommendations" | "Finds" | "Ideas" | "Rules / promises" | "Task" | "Night out" | "Date night" | "Family day"
       task_subcategory: "House" | "Car" | "Boat" | "Travel" | "Books" | "Movies" | "Shows" | "Music" | "Eats" | "Podcasts" | "Activities" | "Appearance" | "Career / network" | "Rules" | "Family / friends" | "Gifts" | "Finances" | "Philanthropy" | "Side quests"
     }
     CompositeTypes: {
