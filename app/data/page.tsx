@@ -17,6 +17,7 @@ import { Bar, Pie } from 'react-chartjs-2';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import MultiSelect from '../components/MultiSelect';
 
 // Register ChartJS components
 ChartJS.register(
@@ -89,10 +90,21 @@ export default function DataPage() {
   const [sortedCategoryData, setSortedCategoryData] = useState<Array<[string, number, number]>>([]);
   const [sortedSubcategoryData, setSortedSubcategoryData] = useState<Array<[string, number, number]>>([]);
   const [totalTasks, setTotalTasks] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<string>("Task");
-  const [selectedTimelineCategory, setSelectedTimelineCategory] = useState<string>("Task");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(["Task"]);
+  const [selectedTimelineCategories, setSelectedTimelineCategories] = useState<string[]>(["Task"]);
+  const [selectedWhoCategories, setSelectedWhoCategories] = useState<string[]>(["All"]);
+  const [selectedWhoSubcategories, setSelectedWhoSubcategories] = useState<string[]>(["All"]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
+  
+  // New state for who distribution
+  const [whoDistribution, setWhoDistribution] = useState<ChartData>({
+    labels: [],
+    datasets: [],
+  });
+  const [sortedWhoData, setSortedWhoData] = useState<Array<[string, number, number]>>([]);
+  const [allSubcategories, setAllSubcategories] = useState<string[]>([]);
+  const [allWhos, setAllWhos] = useState<string[]>([]);
 
   // Define fetchData and other functions before useEffect hooks using useCallback
   const fetchData = useCallback(async () => {
@@ -194,6 +206,17 @@ export default function DataPage() {
       const uniqueCategories = Object.keys(categories);
       setAllCategories(['All', ...uniqueCategories]);
 
+      // Get all unique subcategories
+      const uniqueSubcategories = Array.from(new Set(tasks.map(task => task.subcategory || 'None')));
+      setAllSubcategories(['All', ...uniqueSubcategories]);
+
+      // Get all unique whos
+      const uniqueWhos = Array.from(new Set(tasks.map(task => task.who || 'Unassigned')));
+      setAllWhos(uniqueWhos);
+
+      // Initialize who distribution chart
+      updateWhoChart(["All"], ["All"]);
+
       // Sort categories by count (descending)
       const sortedCategories: Array<[string, number]> = Object.entries(categories)
         .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
@@ -230,17 +253,17 @@ export default function DataPage() {
       });
       
       // Initialize subcategory chart with default category (Task)
-      updateSubcategoryChart(selectedCategory);
+      updateSubcategoryChart(selectedCategories);
       // Initialize tasks completed chart with default category (Task)
-      updateTasksCompletedChart(selectedTimelineCategory);
+      updateTasksCompletedChart(selectedTimelineCategories);
     } catch (error) {
       setError('An error occurred while fetching data');
       console.error(error);
     }
   }, []);
 
-  const updateSubcategoryChart = useCallback((category: string) => {
-    const filteredTasks = allTasks.filter(task => task.category === category);
+  const updateSubcategoryChart = useCallback((categories: string[]) => {
+    const filteredTasks = allTasks.filter(task => categories.includes(task.category || 'Uncategorized'));
     const totalCategoryTasks = filteredTasks.length;
     
     // Process data for subcategory distribution
@@ -286,10 +309,10 @@ export default function DataPage() {
     });
   }, [allTasks, setSubcategoryDistribution, setSortedSubcategoryData]);
 
-  const updateTasksCompletedChart = useCallback((category: string) => {
-    // Filter completed tasks by the selected category
+  const updateTasksCompletedChart = useCallback((categories: string[]) => {
+    // Filter completed tasks by the selected categories
     const filteredCompletedTasks = allTasks.filter(task => 
-      task.completed && (category === 'All' || task.category === category)
+      task.completed && (categories.includes('All') || categories.includes(task.category || 'Uncategorized'))
     );
     
     // Get all unique subcategories from the filtered tasks
@@ -335,6 +358,59 @@ export default function DataPage() {
     });
   }, [allTasks, setTasksCompletedOverTime]);
 
+  const updateWhoChart = useCallback((categories: string[], subcategories: string[]) => {
+    // Filter tasks based on selected categories and subcategories
+    const filteredTasks = allTasks.filter(task => {
+      const categoryMatch = categories.includes("All") || categories.includes(task.category || 'Uncategorized');
+      const subcategoryMatch = subcategories.includes("All") || subcategories.includes(task.subcategory || 'None');
+      return categoryMatch && subcategoryMatch;
+    });
+
+    const totalFilteredTasks = filteredTasks.length;
+    
+    // Process data for who distribution
+    const whos = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
+      const who = task.who || 'Unassigned';
+      acc[who] = (acc[who] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Sort whos by count (descending)
+    const sortedWhos: Array<[string, number]> = Object.entries(whos)
+      .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+      .map(([who, count]) => [who, count as number]);
+    
+    // Calculate percentages and store full data
+    const sortedWithPercentages: Array<[string, number, number]> = sortedWhos.map(([who, count]) => {
+      const percentage = totalFilteredTasks > 0 ? Math.round((count / totalFilteredTasks) * 100) : 0;
+      return [who, count, percentage];
+    });
+    
+    // Store sorted data for the table
+    setSortedWhoData(sortedWithPercentages);
+    
+    const sortedWhosObj = sortedWhos.reduce((acc: Record<string, number>, [who, count]) => {
+      acc[who] = count;
+      return acc;
+    }, {});
+    
+    setWhoDistribution({
+      labels: Object.keys(sortedWhosObj),
+      datasets: [
+        {
+          data: Object.values(sortedWhosObj),
+          backgroundColor: [
+            'rgb(0, 0, 0)',
+            'rgb(50, 50, 50)',
+            'rgb(100, 100, 100)',
+            'rgb(150, 150, 150)',
+            'rgb(200, 200, 200)',
+          ],
+        },
+      ],
+    });
+  }, [allTasks]);
+
   // Now the useEffects can reference the functions properly
   useEffect(() => {
     fetchData();
@@ -342,22 +418,54 @@ export default function DataPage() {
 
   useEffect(() => {
     if (allTasks.length > 0) {
-      updateSubcategoryChart(selectedCategory);
+      updateSubcategoryChart(selectedCategories);
     }
-  }, [selectedCategory, allTasks, updateSubcategoryChart]);
+  }, [selectedCategories, allTasks, updateSubcategoryChart]);
 
   useEffect(() => {
     if (allTasks.length > 0) {
-      updateTasksCompletedChart(selectedTimelineCategory);
+      updateTasksCompletedChart(selectedTimelineCategories);
     }
-  }, [selectedTimelineCategory, allTasks, updateTasksCompletedChart]);
+  }, [selectedTimelineCategories, allTasks, updateTasksCompletedChart]);
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCategory(e.target.value);
+  useEffect(() => {
+    if (allTasks.length > 0) {
+      updateWhoChart(selectedWhoCategories, selectedWhoSubcategories);
+    }
+  }, [selectedWhoCategories, selectedWhoSubcategories, allTasks, updateWhoChart]);
+
+  // Update handlers for multi-select
+  const handleTimelineCategoriesChange = (values: string[]) => {
+    setSelectedTimelineCategories(values.length > 0 ? values : ["All"]);
   };
 
-  const handleTimelineCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTimelineCategory(e.target.value);
+  const handleCategoriesChange = (values: string[]) => {
+    setSelectedCategories(values.length > 0 ? values : ["All"]);
+  };
+
+  const handleWhoCategoriesChange = (values: string[]) => {
+    const newCategories = values.length > 0 ? values : ["All"];
+    setSelectedWhoCategories(newCategories);
+    
+    // Update available subcategories based on selected categories
+    if (newCategories.includes("All")) {
+      const allSubs = Array.from(new Set(allTasks.map(task => task.subcategory || 'None')));
+      setAllSubcategories(['All', ...allSubs]);
+    } else {
+      const categorySubs = Array.from(new Set(
+        allTasks
+          .filter(task => newCategories.includes(task.category || 'Uncategorized'))
+          .map(task => task.subcategory || 'None')
+      ));
+      setAllSubcategories(['All', ...categorySubs]);
+    }
+    
+    // Reset subcategories when categories change
+    setSelectedWhoSubcategories(["All"]);
+  };
+
+  const handleWhoSubcategoriesChange = (values: string[]) => {
+    setSelectedWhoSubcategories(values.length > 0 ? values : ["All"]);
   };
 
   return (
@@ -373,18 +481,16 @@ export default function DataPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
               <h2 className="text-xl font-semibold text-black">Tasks Completed Over Time</h2>
-              <div className="w-64">
-                <select 
-                  value={selectedTimelineCategory}
-                  onChange={handleTimelineCategoryChange}
-                  className="w-full px-3 py-2 text-black bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-black"
-                >
-                  {allCategories.map(category => (
-                    <option key={`timeline-${category}`} value={category}>{category}</option>
-                  ))}
-                </select>
+              <div className="w-full md:w-64">
+                <MultiSelect
+                  options={allCategories}
+                  selectedValues={selectedTimelineCategories}
+                  onChange={handleTimelineCategoriesChange}
+                  label="Categories"
+                  placeholder="Select categories..."
+                />
               </div>
             </div>
             <div className="h-[300px]">
@@ -510,18 +616,16 @@ export default function DataPage() {
           </div>
           
           <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
               <h2 className="text-xl font-semibold text-black">Subcategory Distribution</h2>
-              <div className="w-64">
-                <select 
-                  value={selectedCategory}
-                  onChange={handleCategoryChange}
-                  className="w-full px-3 py-2 text-black bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-black"
-                >
-                  {allCategories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
+              <div className="w-full md:w-64">
+                <MultiSelect
+                  options={allCategories}
+                  selectedValues={selectedCategories}
+                  onChange={handleCategoriesChange}
+                  label="Categories"
+                  placeholder="Select categories..."
+                />
               </div>
             </div>
             <div className="h-[300px]">
@@ -540,14 +644,14 @@ export default function DataPage() {
                     tooltip: {
                       callbacks: {
                         label: (context) => {
-                          const percentage = Math.round((context.raw as number / allTasks.filter(t => t.category === selectedCategory).length) * 100);
+                          const percentage = Math.round((context.raw as number / allTasks.filter(t => t.category === selectedCategories[0]).length) * 100);
                           return `${context.label}: ${context.raw} (${percentage}%)`;
                         }
                       }
                     },
                     datalabels: {
                       formatter: (value: number) => {
-                        const totalCategoryTasks = allTasks.filter(t => t.category === selectedCategory).length;
+                        const totalCategoryTasks = allTasks.filter(t => t.category === selectedCategories[0]).length;
                         const percentage = totalCategoryTasks > 0 ? Math.round((value / totalCategoryTasks) * 100) : 0;
                         return `${percentage}%`;
                       },
@@ -562,7 +666,7 @@ export default function DataPage() {
               />
             </div>
             <div className="mt-6">
-              <h3 className="text-lg font-medium mb-2 text-black">Subcategories of {selectedCategory} by Task Count</h3>
+              <h3 className="text-lg font-medium mb-2 text-black">Subcategories of {selectedCategories[0]} by Task Count</h3>
               <div className="overflow-auto max-h-[200px]">
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs uppercase bg-gray-100">
@@ -576,6 +680,93 @@ export default function DataPage() {
                     {sortedSubcategoryData.map(([subcategory, count, percentage], index) => (
                       <tr key={subcategory} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-4 py-2 text-black">{subcategory}</td>
+                        <td className="px-4 py-2 text-black">{count}</td>
+                        <td className="px-4 py-2 text-black">{percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+              <h2 className="text-xl font-semibold text-black">Task Distribution by Who</h2>
+              <div className="flex flex-col gap-2 w-full md:w-auto">
+                <div className="w-full md:w-48">
+                  <MultiSelect
+                    options={allCategories}
+                    selectedValues={selectedWhoCategories}
+                    onChange={handleWhoCategoriesChange}
+                    label="Categories"
+                    placeholder="Select categories..."
+                  />
+                </div>
+                <div className="w-full md:w-48">
+                  <MultiSelect
+                    options={allSubcategories}
+                    selectedValues={selectedWhoSubcategories}
+                    onChange={handleWhoSubcategoriesChange}
+                    label="Subcategories"
+                    placeholder="Select subcategories..."
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="h-[300px]">
+              <Pie
+                data={whoDistribution}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'top' as const,
+                      labels: {
+                        color: 'black'
+                      }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => {
+                          const totalFilteredTasks = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
+                          const percentage = totalFilteredTasks > 0 ? Math.round((context.raw as number / totalFilteredTasks) * 100) : 0;
+                          return `${context.label}: ${context.raw} (${percentage}%)`;
+                        }
+                      }
+                    },
+                    datalabels: {
+                      formatter: (value: number, ctx) => {
+                        const totalFilteredTasks = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
+                        const percentage = totalFilteredTasks > 0 ? Math.round((value / totalFilteredTasks) * 100) : 0;
+                        return `${percentage}%`;
+                      },
+                      color: 'white',
+                      font: {
+                        weight: 'bold',
+                        size: 12
+                      }
+                    }
+                  },
+                }}
+              />
+            </div>
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2 text-black">Tasks by Who</h3>
+              <div className="overflow-auto max-h-[200px]">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs uppercase bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-2 text-black font-bold">Who</th>
+                      <th className="px-4 py-2 text-black font-bold">Tasks</th>
+                      <th className="px-4 py-2 text-black font-bold">Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedWhoData.map(([who, count, percentage], index) => (
+                      <tr key={who} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-4 py-2 text-black">{who}</td>
                         <td className="px-4 py-2 text-black">{count}</td>
                         <td className="px-4 py-2 text-black">{percentage}%</td>
                       </tr>
