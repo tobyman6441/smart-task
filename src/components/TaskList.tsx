@@ -59,6 +59,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [transitioningTasks, setTransitioningTasks] = useState<Set<string>>(new Set());
   const [sortConfig, setSortConfig] = useState<{
     key: SortableField;
     direction: 'ascending' | 'descending';
@@ -87,11 +88,29 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
 
       if (error) throw error;
       
-      // Update local state through the parent component
-      onTaskUpdate(taskId, { 
-        completed,
-        updated_at: new Date().toISOString()
-      });
+      // If marking as completed and not showing completed tasks, add to transitioning set
+      if (completed && !showCompleted) {
+        setTransitioningTasks(prev => new Set([...prev, taskId]));
+        // Remove from transitioning after delay and update state
+        setTimeout(() => {
+          setTransitioningTasks(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(taskId);
+            return newSet;
+          });
+          // Update local state through the parent component
+          onTaskUpdate(taskId, { 
+            completed,
+            updated_at: new Date().toISOString()
+          });
+        }, 500);
+      } else {
+        // If unchecking or showing completed tasks, update immediately
+        onTaskUpdate(taskId, { 
+          completed,
+          updated_at: new Date().toISOString()
+        });
+      }
     } catch (error) {
       console.error('Error updating task:', error);
       alert('Failed to update task. Please try again.');
@@ -153,6 +172,11 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
   };
 
   const filteredTasks = sortTasks(tasks.filter(task => {
+    // Keep task visible if it's in transition, regardless of completion status
+    if (transitioningTasks.has(task.id)) {
+      return true;
+    }
+    
     if (!showCompleted && task.completed === true) {
       return false;
     }
@@ -632,15 +656,15 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                 <div
                   key={task.id}
                   ref={el => { taskRefs.current[task.id] = el }}
-                  className={`grid grid-cols-[48px_minmax(200px,2fr)_minmax(100px,1fr)_minmax(100px,1fr)_minmax(100px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_48px] gap-x-4 px-6 py-3 hover:bg-gray-50 transition-colors duration-150 ${
-                    task.completed ? 'bg-gray-50/50' : ''
+                  className={`grid grid-cols-[48px_minmax(200px,2fr)_minmax(100px,1fr)_minmax(100px,1fr)_minmax(100px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_48px] gap-x-4 px-6 py-3 hover:bg-gray-50 transition-all duration-500 ${
+                    task.completed || transitioningTasks.has(task.id) ? 'bg-gray-50/50' : ''
                   }`}
                 >
                   <div className="flex items-center justify-center">
                     <div className="relative flex-shrink-0 flex items-center">
                       <input
                         type="checkbox"
-                        checked={task.completed || false}
+                        checked={task.completed || transitioningTasks.has(task.id)}
                         onChange={(e) => handleComplete(task.id, e.target.checked)}
                         className="peer appearance-none !h-4 !w-4 !rounded !border-2 !border-gray-300 bg-white cursor-pointer checked:!bg-black checked:!border-black hover:!border-black focus:outline-none focus:!ring-0"
                       />
@@ -663,7 +687,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     </div>
                   </div>
                   <div className="flex items-center min-w-0 pr-4">
-                    <span className={`text-sm truncate ${task.completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+                    <span className={`text-sm truncate transition-all duration-500 ${task.completed || transitioningTasks.has(task.id) ? 'line-through text-gray-400' : 'text-gray-900'}`}>
                       {task.name}
                     </span>
                   </div>
@@ -722,7 +746,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
             <div
               key={task.id}
               ref={el => { taskRefs.current[task.id] = el }}
-              className={`bg-white rounded-lg shadow p-6 ${task.completed ? 'opacity-50' : ''}`}
+              className={`bg-white rounded-lg shadow p-6 transition-all duration-500 ${task.completed || transitioningTasks.has(task.id) ? 'opacity-50' : ''}`}
             >
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-4">
@@ -730,7 +754,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     <div className="relative flex-shrink-0 flex items-center">
                       <input
                         type="checkbox"
-                        checked={task.completed || false}
+                        checked={task.completed || transitioningTasks.has(task.id)}
                         onChange={(e) => handleComplete(task.id, e.target.checked)}
                         className="peer appearance-none !h-4 !w-4 !rounded !border-2 !border-gray-300 bg-white cursor-pointer checked:!bg-black checked:!border-black hover:!border-black focus:outline-none focus:!ring-0"
                       />
@@ -752,7 +776,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                       </svg>
                     </div>
                     <h3 className={`text-lg font-medium text-gray-900 ${
-                      task.completed ? 'line-through text-gray-400' : ''
+                      task.completed || transitioningTasks.has(task.id) ? 'line-through text-gray-400' : ''
                     }`}>
                       {task.name}
                     </h3>
