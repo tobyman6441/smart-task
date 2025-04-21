@@ -554,7 +554,7 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
           <div className="w-full divide-y divide-gray-200 bg-white rounded-lg border border-gray-200">
             <div className="bg-gray-50 sticky top-0 z-10 border-b border-gray-200">
               <div className="grid grid-cols-[48px_minmax(200px,2fr)_minmax(100px,1fr)_minmax(100px,1fr)_minmax(100px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_48px] gap-x-4 px-6 py-3 text-sm font-medium text-gray-500">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-center">
                   <button
                     onClick={() => setShowCompleted(!showCompleted)}
                     className={`rounded-full p-1.5 transition-colors duration-200 ${
@@ -636,13 +636,31 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                     task.completed ? 'bg-gray-50/50' : ''
                   }`}
                 >
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={task.completed || false}
-                      onChange={(e) => handleComplete(task.id, e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
-                    />
+                  <div className="flex items-center justify-center">
+                    <div className="relative flex-shrink-0 flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={task.completed || false}
+                        onChange={(e) => handleComplete(task.id, e.target.checked)}
+                        className="peer appearance-none !h-4 !w-4 !rounded !border-2 !border-gray-300 bg-white cursor-pointer checked:!bg-black checked:!border-black hover:!border-black focus:outline-none focus:!ring-0"
+                      />
+                      <svg
+                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 text-white transition-opacity peer-checked:opacity-100"
+                        width="10"
+                        height="10"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10 3L4.5 8.5L2 6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
                   </div>
                   <div className="flex items-center min-w-0 pr-4">
                     <span className={`text-sm truncate ${task.completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>
@@ -714,13 +732,12 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
                         type="checkbox"
                         checked={task.completed || false}
                         onChange={(e) => handleComplete(task.id, e.target.checked)}
-                        className="peer h-6 w-6 cursor-pointer appearance-none rounded-full border-2 border-gray-300 transition-all checked:border-black checked:bg-black hover:border-black"
-                        style={{ marginTop: '2px' }}
+                        className="peer appearance-none !h-4 !w-4 !rounded !border-2 !border-gray-300 bg-white cursor-pointer checked:!bg-black checked:!border-black hover:!border-black focus:outline-none focus:!ring-0"
                       />
                       <svg
-                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[45%] opacity-0 text-white transition-opacity peer-checked:opacity-100"
-                        width="14"
-                        height="14"
+                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 text-white transition-opacity peer-checked:opacity-100"
+                        width="10"
+                        height="10"
                         viewBox="0 0 12 12"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
