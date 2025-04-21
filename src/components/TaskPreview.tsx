@@ -98,7 +98,7 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
       type,
       category,
       subcategory,
-      who,
+      who: who.trim() || 'Me',  // Default to "Me" if who is empty or just whitespace
       // Explicitly convert Date to ISO string when present, otherwise null
       due_date: dueDate ? dueDate.toISOString() : null,
       id: analysis.id,
@@ -126,7 +126,7 @@ export default function TaskPreview({ onCancel, onSave, onDelete, analysis, mode
       type,
       category,
       subcategory,
-      who,
+      who: who.trim() || 'Me',  // Default to "Me" if who is empty or just whitespace
       due_date: now.toISOString(),
       id: analysis.id,
       completed: true

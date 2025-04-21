@@ -428,90 +428,124 @@ export default function TaskList({ tasks, onEditTask, onTaskUpdate }: Props) {
               <div className="flex items-center">
                 <span className="text-sm font-medium text-gray-500">Filter by:</span>
               </div>
-              <div className="grid grid-cols-21 gap-2 px-4 py-2 text-sm font-medium text-gray-500">
-                <div className="col-span-1"></div>
-                <div className="col-span-6">Name</div>
-                <div className="col-span-1">Created</div>
-                <div className="col-span-1"></div>
-                <div className="col-span-2">Due Date</div>
-                <div className="col-span-1"></div>
-                <div className="col-span-2">
-                  <div className="flex items-center gap-1">
-                    <span>Type</span>
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={selectedType}
-                        onChange={(e) => setSelectedType(e.target.value)}
-                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+              
+              {/* Filter buttons for mobile */}
+              <div className="flex flex-col gap-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Type</label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedType('')}
+                      className={`px-3 py-1 text-sm rounded-full border ${
+                        selectedType === '' 
+                          ? 'bg-black text-white border-black' 
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      All
+                    </button>
+                    {TASK_TYPES.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setSelectedType(type)}
+                        className={`px-3 py-1 text-sm rounded-full border ${
+                          selectedType === type 
+                            ? 'bg-black text-white border-black' 
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
                       >
-                        <option value="">All</option>
-                        {TASK_TYPES.map((type) => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
-                      </select>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className={`w-4 h-4 ${selectedType ? 'text-black' : 'text-gray-400'} hover:text-gray-600`}
-                      >
-                        <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                        {type}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="col-span-2">
-                  <div className="flex items-center gap-1">
-                    <span>Category</span>
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Category</label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedCategory('')}
+                      className={`px-3 py-1 text-sm rounded-full border ${
+                        selectedCategory === '' 
+                          ? 'bg-black text-white border-black' 
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      All
+                    </button>
+                    {TASK_CATEGORIES.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`px-3 py-1 text-sm rounded-full border ${
+                          selectedCategory === category 
+                            ? 'bg-black text-white border-black' 
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
                       >
-                        <option value="">All</option>
-                        {TASK_CATEGORIES.map((category) => (
-                          <option key={category} value={category}>{category}</option>
-                        ))}
-                      </select>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className={`w-4 h-4 ${selectedCategory ? 'text-black' : 'text-gray-400'} hover:text-gray-600`}
-                      >
-                        <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                        {category}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="col-span-2">
-                  <div className="flex items-center gap-1">
-                    <span>Subcategory</span>
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={selectedSubcategory}
-                        onChange={(e) => setSelectedSubcategory(e.target.value)}
-                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Subcategory</label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedSubcategory('')}
+                      className={`px-3 py-1 text-sm rounded-full border ${
+                        selectedSubcategory === '' 
+                          ? 'bg-black text-white border-black' 
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      All
+                    </button>
+                    {TASK_SUBCATEGORIES.map((subcategory) => (
+                      <button
+                        key={subcategory}
+                        onClick={() => setSelectedSubcategory(subcategory)}
+                        className={`px-3 py-1 text-sm rounded-full border ${
+                          selectedSubcategory === subcategory 
+                            ? 'bg-black text-white border-black' 
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
                       >
-                        <option value="">All</option>
-                        {TASK_SUBCATEGORIES.map((subcategory) => (
-                          <option key={subcategory} value={subcategory}>{subcategory}</option>
-                        ))}
-                      </select>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className={`w-4 h-4 ${selectedSubcategory ? 'text-black' : 'text-gray-400'} hover:text-gray-600`}
-                      >
-                        <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                        {subcategory}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="col-span-2">Who</div>
-                <div className="col-span-1"></div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Who</label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedWho('')}
+                      className={`px-3 py-1 text-sm rounded-full border ${
+                        selectedWho === '' 
+                          ? 'bg-black text-white border-black' 
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      All
+                    </button>
+                    {uniqueWhos.map((who) => (
+                      <button
+                        key={who}
+                        onClick={() => setSelectedWho(who)}
+                        className={`px-3 py-1 text-sm rounded-full border ${
+                          selectedWho === who 
+                            ? 'bg-black text-white border-black' 
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        {who}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
