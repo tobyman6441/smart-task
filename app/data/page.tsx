@@ -374,9 +374,6 @@ export default function DataPage() {
       const uniqueSubcategories = Array.from(new Set(tasks.map(task => task.subcategory || 'None')));
       setAllSubcategories(['All', ...uniqueSubcategories]);
 
-      // Get all unique whos
-      const uniqueWhos = Array.from(new Set(tasks.map(task => task.who || 'Unassigned')));
-      
       // Initialize who distribution chart
       updateWhoChart(["All"], ["All"]);
 
@@ -423,7 +420,7 @@ export default function DataPage() {
       setError('An error occurred while fetching data');
       console.error(error);
     }
-  }, [selectedCategories, selectedTimelineCategories, selectedWhoCategories, selectedWhoSubcategories, updateSubcategoryChart, updateTasksCompletedChart, updateWhoChart]);
+  }, [selectedCategories, selectedTimelineCategories, updateSubcategoryChart, updateTasksCompletedChart, updateWhoChart]);
 
   // Now the useEffects can reference the functions properly
   useEffect(() => {
