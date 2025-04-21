@@ -104,7 +104,171 @@ export default function DataPage() {
   });
   const [sortedWhoData, setSortedWhoData] = useState<Array<[string, number, number]>>([]);
   const [allSubcategories, setAllSubcategories] = useState<string[]>([]);
-  const [allWhos, setAllWhos] = useState<string[]>([]);
+
+  const updateTasksCompletedChart = useCallback((categories: string[]) => {
+    if (!allTasks) return;
+    
+    const filteredTasks = categories.includes("All") 
+      ? allTasks 
+      : allTasks.filter(task => categories.includes(task.category || 'Uncategorized'));
+
+    // Process data for tasks completed over time by subcategory
+    const completedTasks = filteredTasks.filter(task => task.completed);
+    
+    // Get all unique subcategories
+    const allSubcategories = Array.from(new Set(completedTasks.map(task => task.subcategory || 'None')));
+    
+    // Group tasks by date and subcategory
+    const tasksByDateAndSubcategory: Record<string, Record<string, number>> = {};
+    
+    completedTasks.forEach(task => {
+      const date = new Date(task.updated_at).toLocaleDateString();
+      const subcategory = task.subcategory || 'None';
+      
+      if (!tasksByDateAndSubcategory[date]) {
+        tasksByDateAndSubcategory[date] = {};
+      }
+      
+      tasksByDateAndSubcategory[date][subcategory] = (tasksByDateAndSubcategory[date][subcategory] || 0) + 1;
+    });
+    
+    // Sort dates chronologically
+    const sortedDates = Object.keys(tasksByDateAndSubcategory).sort((a, b) => {
+      return new Date(a).getTime() - new Date(b).getTime();
+    });
+    
+    // Create datasets for each subcategory
+    const subcategoryDatasets = allSubcategories.map((subcategory, index) => {
+      // Generate a grayscale color based on index
+      const grayShade = Math.max(0, Math.min(200, index * 40));
+      const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
+      
+      return {
+        label: subcategory,
+        data: sortedDates.map(date => 
+          tasksByDateAndSubcategory[date][subcategory] || 0
+        ),
+        backgroundColor: color,
+      };
+    });
+    
+    setTasksCompletedOverTime({
+      labels: sortedDates,
+      datasets: subcategoryDatasets,
+    });
+  }, [allTasks]);
+
+  const updateSubcategoryChart = useCallback((categories: string[]) => {
+    if (!allTasks) return;
+
+    const filteredTasks = categories.includes("All") 
+      ? allTasks 
+      : allTasks.filter(task => categories.includes(task.category || 'Uncategorized'));
+
+    // Process data for subcategory distribution
+    const subcategories = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
+      const subcategory = task.subcategory || 'None';
+      acc[subcategory] = (acc[subcategory] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Sort subcategories by count (descending)
+    const sortedSubcategories: Array<[string, number]> = Object.entries(subcategories)
+      .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+      .map(([subcategory, count]) => [subcategory, count as number]);
+
+    // Calculate percentages and store full data
+    const sortedWithPercentages: Array<[string, number, number]> = sortedSubcategories.map(([subcategory, count]) => {
+      const percentage = Math.round((count / filteredTasks.length) * 100);
+      return [subcategory, count, percentage];
+    });
+    
+    // Store sorted data for the table
+    setSortedSubcategoryData(sortedWithPercentages);
+
+    const sortedSubcategoriesObj = sortedSubcategories.reduce((acc: Record<string, number>, [subcategory, count]) => {
+      acc[subcategory] = count;
+      return acc;
+    }, {});
+
+    setSubcategoryDistribution({
+      labels: Object.keys(sortedSubcategoriesObj),
+      datasets: [
+        {
+          data: Object.values(sortedSubcategoriesObj),
+          backgroundColor: [
+            'rgb(0, 0, 0)',
+            'rgb(50, 50, 50)',
+            'rgb(100, 100, 100)',
+            'rgb(150, 150, 150)',
+            'rgb(200, 200, 200)',
+          ],
+        },
+      ],
+    });
+  }, [allTasks]);
+
+  const updateWhoChart = useCallback((categories: string[], subcategories: string[]) => {
+    if (!allTasks) return;
+
+    let filteredTasks = allTasks;
+
+    // Filter by categories if not "All"
+    if (!categories.includes("All")) {
+      filteredTasks = filteredTasks.filter(task => 
+        categories.includes(task.category || 'Uncategorized')
+      );
+    }
+
+    // Filter by subcategories if not "All"
+    if (!subcategories.includes("All")) {
+      filteredTasks = filteredTasks.filter(task => 
+        subcategories.includes(task.subcategory || 'None')
+      );
+    }
+
+    // Process data for who distribution
+    const whoDistributionData = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
+      const who = task.who || 'Unassigned';
+      acc[who] = (acc[who] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Sort who data by count (descending)
+    const sortedWhoEntries: Array<[string, number]> = Object.entries(whoDistributionData)
+      .sort(([, countA], [, countB]) => countB - countA)
+      .map(([who, count]) => [who, count]);
+
+    // Calculate percentages and store full data
+    const sortedWithPercentages: Array<[string, number, number]> = sortedWhoEntries.map(([who, count]) => {
+      const percentage = Math.round((count / filteredTasks.length) * 100);
+      return [who, count, percentage];
+    });
+    
+    // Store sorted data for the table
+    setSortedWhoData(sortedWithPercentages);
+
+    const sortedWhoObj = sortedWhoEntries.reduce((acc: Record<string, number>, [who, count]) => {
+      acc[who] = count;
+      return acc;
+    }, {});
+
+    setWhoDistribution({
+      labels: Object.keys(sortedWhoObj),
+      datasets: [
+        {
+          data: Object.values(sortedWhoObj),
+          backgroundColor: [
+            'rgb(0, 0, 0)',
+            'rgb(50, 50, 50)',
+            'rgb(100, 100, 100)',
+            'rgb(150, 150, 150)',
+            'rgb(200, 200, 200)',
+          ],
+        },
+      ],
+    });
+  }, [allTasks]);
 
   // Define fetchData and other functions before useEffect hooks using useCallback
   const fetchData = useCallback(async () => {
@@ -212,8 +376,7 @@ export default function DataPage() {
 
       // Get all unique whos
       const uniqueWhos = Array.from(new Set(tasks.map(task => task.who || 'Unassigned')));
-      setAllWhos(uniqueWhos);
-
+      
       // Initialize who distribution chart
       updateWhoChart(["All"], ["All"]);
 
@@ -260,156 +423,7 @@ export default function DataPage() {
       setError('An error occurred while fetching data');
       console.error(error);
     }
-  }, []);
-
-  const updateSubcategoryChart = useCallback((categories: string[]) => {
-    const filteredTasks = allTasks.filter(task => categories.includes(task.category || 'Uncategorized'));
-    const totalCategoryTasks = filteredTasks.length;
-    
-    // Process data for subcategory distribution
-    const subcategories = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
-      const subcategory = task.subcategory || 'None';
-      acc[subcategory] = (acc[subcategory] || 0) + 1;
-      return acc;
-    }, {});
-    
-    // Sort subcategories by count (descending)
-    const sortedSubcategories: Array<[string, number]> = Object.entries(subcategories)
-      .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
-      .map(([subcategory, count]) => [subcategory, count as number]);
-    
-    // Calculate percentages and store full data
-    const sortedWithPercentages: Array<[string, number, number]> = sortedSubcategories.map(([subcategory, count]) => {
-      const percentage = totalCategoryTasks > 0 ? Math.round((count / totalCategoryTasks) * 100) : 0;
-      return [subcategory, count, percentage];
-    });
-    
-    // Store sorted data for the table
-    setSortedSubcategoryData(sortedWithPercentages);
-    
-    const sortedSubcategoriesObj = sortedSubcategories.reduce((acc: Record<string, number>, [subcategory, count]) => {
-      acc[subcategory] = count;
-      return acc;
-    }, {});
-    
-    setSubcategoryDistribution({
-      labels: Object.keys(sortedSubcategoriesObj),
-      datasets: [
-        {
-          data: Object.values(sortedSubcategoriesObj),
-          backgroundColor: [
-            'rgb(0, 0, 0)',
-            'rgb(50, 50, 50)',
-            'rgb(100, 100, 100)',
-            'rgb(150, 150, 150)',
-            'rgb(200, 200, 200)',
-          ],
-        },
-      ],
-    });
-  }, [allTasks, setSubcategoryDistribution, setSortedSubcategoryData]);
-
-  const updateTasksCompletedChart = useCallback((categories: string[]) => {
-    // Filter completed tasks by the selected categories
-    const filteredCompletedTasks = allTasks.filter(task => 
-      task.completed && (categories.includes('All') || categories.includes(task.category || 'Uncategorized'))
-    );
-    
-    // Get all unique subcategories from the filtered tasks
-    const allSubcategories = Array.from(new Set(filteredCompletedTasks.map(task => task.subcategory || 'None')));
-    
-    // Group tasks by date and subcategory
-    const tasksByDateAndSubcategory: Record<string, Record<string, number>> = {};
-    
-    filteredCompletedTasks.forEach(task => {
-      const date = new Date(task.updated_at).toLocaleDateString();
-      const subcategory = task.subcategory || 'None';
-      
-      if (!tasksByDateAndSubcategory[date]) {
-        tasksByDateAndSubcategory[date] = {};
-      }
-      
-      tasksByDateAndSubcategory[date][subcategory] = (tasksByDateAndSubcategory[date][subcategory] || 0) + 1;
-    });
-    
-    // Sort dates chronologically
-    const sortedDates = Object.keys(tasksByDateAndSubcategory).sort((a, b) => {
-      return new Date(a).getTime() - new Date(b).getTime();
-    });
-    
-    // Create datasets for each subcategory
-    const subcategoryDatasets = allSubcategories.map((subcategory, index) => {
-      // Generate a grayscale color based on index
-      const grayShade = Math.max(0, Math.min(200, index * 40));
-      const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
-      
-      return {
-        label: subcategory,
-        data: sortedDates.map(date => 
-          tasksByDateAndSubcategory[date][subcategory] || 0
-        ),
-        backgroundColor: color,
-      };
-    });
-    
-    setTasksCompletedOverTime({
-      labels: sortedDates,
-      datasets: subcategoryDatasets,
-    });
-  }, [allTasks, setTasksCompletedOverTime]);
-
-  const updateWhoChart = useCallback((categories: string[], subcategories: string[]) => {
-    // Filter tasks based on selected categories and subcategories
-    const filteredTasks = allTasks.filter(task => {
-      const categoryMatch = categories.includes("All") || categories.includes(task.category || 'Uncategorized');
-      const subcategoryMatch = subcategories.includes("All") || subcategories.includes(task.subcategory || 'None');
-      return categoryMatch && subcategoryMatch;
-    });
-
-    const totalFilteredTasks = filteredTasks.length;
-    
-    // Process data for who distribution
-    const whos = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
-      const who = task.who || 'Unassigned';
-      acc[who] = (acc[who] || 0) + 1;
-      return acc;
-    }, {});
-    
-    // Sort whos by count (descending)
-    const sortedWhos: Array<[string, number]> = Object.entries(whos)
-      .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
-      .map(([who, count]) => [who, count as number]);
-    
-    // Calculate percentages and store full data
-    const sortedWithPercentages: Array<[string, number, number]> = sortedWhos.map(([who, count]) => {
-      const percentage = totalFilteredTasks > 0 ? Math.round((count / totalFilteredTasks) * 100) : 0;
-      return [who, count, percentage];
-    });
-    
-    // Store sorted data for the table
-    setSortedWhoData(sortedWithPercentages);
-    
-    const sortedWhosObj = sortedWhos.reduce((acc: Record<string, number>, [who, count]) => {
-      acc[who] = count;
-      return acc;
-    }, {});
-    
-    setWhoDistribution({
-      labels: Object.keys(sortedWhosObj),
-      datasets: [
-        {
-          data: Object.values(sortedWhosObj),
-          backgroundColor: [
-            'rgb(0, 0, 0)',
-            'rgb(50, 50, 50)',
-            'rgb(100, 100, 100)',
-            'rgb(150, 150, 150)',
-            'rgb(200, 200, 200)',
-          ],
-        },
-      ],
-    });
-  }, [allTasks]);
+  }, [selectedCategories, selectedTimelineCategories, selectedWhoCategories, selectedWhoSubcategories, updateSubcategoryChart, updateTasksCompletedChart, updateWhoChart]);
 
   // Now the useEffects can reference the functions properly
   useEffect(() => {
